@@ -1,51 +1,5 @@
 import streamlit as st
-import cx_Oracle
-import pandas as pd
-
-# # This is the path to the ORACLE client files
-# lib_dir = r"C:\Oracle\instantclient_12_2"
-# cx_Oracle.init_oracle_client(lib_dir)
-
-# Define Oracle database connection parameters
-oracle_username = '***REMOVED***'
-oracle_password = '***REMOVED***'
-oracle_host = '***REMOVED***'
-oracle_port = '***REMOVED***'
-oracle_service_name = '***REMOVED***'
-
-# Establish a connection
-connection = cx_Oracle.connect(
-    f"{oracle_username}/{oracle_password}@{oracle_host}:{oracle_port}/{oracle_service_name}"
-)
-
-
-# Create a cursor for executing SQL queries
-cursor = connection.cursor()
-
-# Define the SQL query to fetch all columns from the table
-sql_query = "SELECT * FROM SPS_SEP_COIL_ACQ"
-
-# Create a cursor
-cursor = connection.cursor()
-
-try:
-    # Execute the query
-    cursor.execute(sql_query)
-
-    # Fetch all rows
-    rows = cursor.fetchall()
-
-    # Get column names
-    column_names = [desc[0] for desc in cursor.description]
-
-    # Create a Pandas DataFrame
-    df = pd.DataFrame(rows, columns=column_names)
-
-finally:
-    # Close the cursor and connection
-    cursor.close()
-    connection.close()
-
+from dbconnection import *
 
 # Create Streamlit app
 st.title('Magnetic Measurements Dashboard')
@@ -53,3 +7,28 @@ st.title('Magnetic Measurements Dashboard')
 # Display the data in a Streamlit table
 st.write("Magnetic Measurements Data")
 st.table(df)
+
+st.title("Average Flux")
+# Display the pivoted data
+st.write(average_data)
+
+st.title("Stddev Flux")
+# Display the pivoted data
+st.write(stddev_data)
+
+# # Check if there is data in the DataFrame
+# if not df.empty:
+#     st.title("Measurement Information")
+    
+#     # Access the basic information for the first row (iloc[0])
+#     basic_info = df.iloc[0]
+
+#     # Display the basic information
+#     st.subheader("Basic Measurement Info")
+#     st.write(f"Date Measured: {basic_info['MEASUREMENT_DATE']}")
+#     st.write(f"Measured Magnet: {basic_info['MAGNET_MEASURED']}")
+#     st.write(f"Reference Magnet: {basic_info['MAGNET_REFERENCE']}")
+#     st.write(f"Fluxmeter in Measured Magnet: {basic_info['FLUXMETER_MEASURED']}")
+#     st.write(f"Fluxmeter in Reference Magnet: {basic_info['FLUXMETER_REFERENCE']}")
+# else:
+#     st.warning("No measurement information found in the DataFrame.")
