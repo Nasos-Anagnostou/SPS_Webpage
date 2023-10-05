@@ -24,6 +24,9 @@ def execute_query(connection):
     cursor = connection.cursor()
     
     try:
+        # comment only for the dev of the app
+        #cursor.execute("ALTER TABLE SPS_SEP_COIL_ACQ NOCACHE")
+        
         cursor.execute("SELECT * FROM SPS_SEP_COIL_ACQ")
         rows = cursor.fetchall()
         column_names = [desc[0] for desc in cursor.description]
@@ -40,15 +43,11 @@ lib_dir = r"C:\Oracle\instantclient_12_2"
 
 # Initialize the database connection
 db_connection = connect_to_oracle()
-
+df = execute_query(db_connection)
 
 # cursor = db_connection.cursor()
-
 # sql_query = "SELECT * FROM SPS_SEP_COIL_ACQ"
 # cursor.execute(sql_query)
-
-
-df = execute_query(db_connection)
 
 # Data processing and analysis here
 # Average Flux of the coils for different current applied
