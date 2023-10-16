@@ -1,4 +1,5 @@
 import streamlit as st
+
 from streamlit_extras.switch_page_button import switch_page
 from custom_funct import *
 
@@ -12,8 +13,3 @@ st.set_page_config(page_title="Magnetic Measurements SPS Database 🧲📏", pag
 # add background
 add_bg_from_url(title)
 ######################################## THE LAYOUT OF THE PAGE ###########################################
-
-# Create Streamlit app
-st.title('Magnetic Measurements Dashboard')
-
-

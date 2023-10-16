@@ -25,7 +25,7 @@ def execute_query(connection):
     
     try:
         # comment only for the dev of the app
-        #cursor.execute("ALTER TABLE SPS_SEP_COIL_ACQ NOCACHE")
+        cursor.execute("ALTER TABLE SPS_SEP_COIL_ACQ NOCACHE")
         
         cursor.execute("SELECT * FROM SPS_SEP_COIL_ACQ")
         rows = cursor.fetchall()
