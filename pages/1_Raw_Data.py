@@ -22,6 +22,7 @@ if not df.empty:
 
     # Display the basic information
     st.subheader("Basic Measurement Info")
+    st.write(f"Workorder number: {basic_info['WORKORDER_N']}")
     st.write(f"Date Measured: {basic_info['MEASUREMENT_DATE']}")
     st.write(f"Measured Magnet: {basic_info['MAGNET_MEASURED']}")
     st.write(f"Reference Magnet: {basic_info['MAGNET_REFERENCE']}")
@@ -31,9 +32,10 @@ else:
     st.warning("No measurement information found in the DataFrame.")
 
 
-    # for a specific workorder,date, etc
+# for a specific workorder,date, etc
 # Display the data in a Streamlit table
 st.write("Magnetic Measurements Data")
+df = df.iloc[:, 7:]
 st.write(df)
 
 st.title("Average Flux")

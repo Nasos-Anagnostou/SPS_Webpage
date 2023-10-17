@@ -51,13 +51,12 @@ df = execute_query(db_connection)
 
 # Data processing and analysis here
 # Average Flux of the coils for different current applied
-pivoted_data = df.pivot_table(index='CURRENT_APPLIED', values=['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'R5'], aggfunc='mean')
-average_data = pivoted_data.style.format("{:.6f}")
+avg_data = df.pivot_table(index='CURRENT_APPLIED', values=['R5', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'], aggfunc='mean')
+average_data = avg_data.style.format("{:.6f}")
 
 # Stddev Flux of the coils for different current applied
-grouped_data = df.groupby('CURRENT_APPLIED')[['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'R5']].std()
+grouped_data = df.groupby('CURRENT_APPLIED')[['R5', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9']].std()
 pivoted_data = grouped_data.reset_index().pivot_table(index='CURRENT_APPLIED')
-# Display the pivoted data table with customized formatting
 stddev_data = pivoted_data.style.format("{:.6f}")
 
 
