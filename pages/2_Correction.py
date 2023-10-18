@@ -39,6 +39,7 @@ if not df.empty:
         }
         current_applied = (250, 1000, 2500, 4000, 4900)
         coils_used = ('R5', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9')
+        impedance_img = "images/Impedance_dipole.png"
 
     elif "Quadrupole" in basic_info['MAGNET_MEASURED']:
         print("This is a Quadruple")
@@ -55,28 +56,68 @@ if not df.empty:
         }
         current_applied = (100, 400, 1000, 1540, 1938)
         coils_used = ('R5','M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8')
+        impedance_img = "images/Impedance_quadrople.png"
     
-    # for every current create a table with the correction for each coil
-    # correction form
-    #corr_data = ((coil_impedances["FDI"] + coil_impedances[coils_used])/ coil_impedances["FDI"]) * average_data
-    
+    # Initialize an empty dictionary to store DataFrames
+    result_dfs = {}
+    data_list = []
     for current in current_applied:
-         st.write(current)
-         current_avg = avg_data.loc[avg_data.index == current]
-         st.write(current_avg)
+        current_avg = avg_data.loc[avg_data.index == current]
+        # Initialize an empty list to store data
+        #data_list = []
+                  
+        for coil in coils_used:
+            bfr_corr = current_avg.loc[current,coil]
+            aftr_corr = ((coil_impedances["FDI"] + coil_impedances[coil])/ coil_impedances["FDI"]) * bfr_corr
+            
+            # Create a dictionary for the current row of data
+            row_data = {
+                'Current':current,
+                'Coil': coil,
+                'Before Correction': bfr_corr,
+                'After Correction': aftr_corr
+            }
+            # Append the row_data dictionary to the data_list
+            data_list.append(row_data)
+        
+        # # Create a DataFrame from the data_list
+        # current_df  = pd.DataFrame(data_list)
+        # # Store the DataFrame in the result_dfs dictionary with the current as the key
+        # result_dfs[current] = current_df
 
-         filtered_df = df[df['CURRENT_APPLIED'] == current]
-         st.write(filtered_df)
-         
-         for coil in coils_used:
-            st.write(coil)
-            curr_avg = current_avg[coil]
-            st.write(curr_avg)
-            #corr_data = ((coil_impedances["FDI"] + coil_impedances[coil])/ coil_impedances["FDI"]) * curr_avg
-            #st.write(corr_data)
-         
-    
+    # Create a DataFrame from the data_list
+    result_df = pd.DataFrame(data_list)
 
+    # # Display each DataFrame in the result_dfs dictionary
+    # for current, current_df in result_dfs.items():
+    #     st.write(f"Data for Current {current}:")
+    #     st.dataframe(current_df)
 
+    # Create two columns for arranging items side by side
+    left_column, right_column = st.columns(2)
+
+    # Add content to the left column
+    with left_column:
+
+        # Create a dropdown menu for selecting the "current" value
+        selected_current = st.selectbox("Select a Current", current_applied)
+        # Filter the DataFrame based on the selected "current"
+        filtered_df = result_df[result_df['Current'] == selected_current].iloc[:, 1:]
+
+        # Display the selected table
+        st.write(f" Current {selected_current}:")
+        st.dataframe(filtered_df, hide_index=1, width=600)        
+
+    # Add content to the right column
+    with right_column:
+        empty_line(5)
+        st.write("Impedance of every coil")
+        st.image(impedance_img)
+        st.image("images/Correction_image.png")
+       
 else:
     print("No measurement information found in the DataFrame.")
+
+
+
+
