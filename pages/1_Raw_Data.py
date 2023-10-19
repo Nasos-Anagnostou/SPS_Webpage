@@ -24,10 +24,10 @@ if not df.empty:
     st.subheader("Basic Measurement Info")
     st.write(f"Workorder number: {basic_info['WORKORDER_N']}")
     st.write(f"Date Measured: {basic_info['MEASUREMENT_DATE']}")
-    st.write(f"Measured Magnet: {basic_info['MAGNET_MEASURED']}")
-    st.write(f"Reference Magnet: {basic_info['MAGNET_REFERENCE']}")
-    st.write(f"Fluxmeter in Measured Magnet: {basic_info['FLUXMETER_MEASURED']}")
-    st.write(f"Fluxmeter in Reference Magnet: {basic_info['FLUXMETER_REFERENCE']}")
+    st.write(f"{basic_info['MAGNET_MEASURED']}")
+    st.write(f"{basic_info['MAGNET_REFERENCE']}")
+    st.write(f"{basic_info['FLUXMETER_MEASURED']}")
+    st.write(f"{basic_info['FLUXMETER_REFERENCE']}")
 else:
     st.warning("No measurement information found in the DataFrame.")
 
@@ -36,7 +36,7 @@ else:
 # Display the data in a Streamlit table
 st.write("Magnetic Measurements Data")
 df = df.iloc[:, 7:]
-st.write(df)
+st.dataframe(df, width=1200)
 
 st.title("Average Flux")
 # Display the pivoted data

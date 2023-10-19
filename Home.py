@@ -18,3 +18,6 @@ st.title('Magnetic Measurements Dashboard')
 
 
 # choose data based on workorder and date and move to raw data page
+st.write("Choose wich workorder you want to see")
+
+#input
