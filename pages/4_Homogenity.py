@@ -13,3 +13,19 @@ st.set_page_config(page_title="Magnetic Measurements SPS Database 🧲📏", pag
 # add background
 add_bg_from_url(title)
 ######################################## THE LAYOUT OF THE PAGE ###########################################
+
+
+
+# Create a collapsible section for coil resistances
+with st.expander("Coil Resistances"):
+    coilMeasResistance = {
+        "M1": 0.0, "M2": 0.0, "M3": 0.0, "M4": 0.0,
+        "M5": 0.0, "M6": 0.0, "M7": 0.0, "M8": 0.0, "M9": 0.0
+    }
+
+    # Collect user inputs for coil resistances
+    for coil_name in coilMeasResistance:
+        coilMeasResistance[coil_name] = st.number_input(f"{coil_name} Resistance", 0.0)
+
+# Display the collected values
+st.write("Collected Coil Resistances:", coilMeasResistance)

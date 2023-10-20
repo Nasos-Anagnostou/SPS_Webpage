@@ -1,8 +1,7 @@
 import cx_Oracle
 import pandas as pd
+import streamlit as st
 
-def initialize_oracle_client(lib_dir):
-    cx_Oracle.init_oracle_client(lib_dir)
 
 def connect_to_oracle():
     oracle_username = '***REMOVED***'
@@ -22,32 +21,27 @@ def connect_to_oracle():
 
 def execute_query(connection):
     cursor = connection.cursor()
-    
+
     try:
         # comment only for the dev of the app
         cursor.execute("ALTER TABLE SPS_SEP_COIL_ACQ NOCACHE")
-        
         cursor.execute("SELECT * FROM SPS_SEP_COIL_ACQ")
         rows = cursor.fetchall()
         column_names = [desc[0] for desc in cursor.description]
         df = pd.DataFrame(rows, columns=column_names)
-        print(df)
         return df
     finally:
         cursor.close()
 
-
-lib_dir = r"C:\Oracle\instantclient_12_2"
-#initialize_oracle_client(lib_dir)
-
+# initialise the connection
+try:
+    cx_Oracle.init_oracle_client("C:\Oracle\instantclient_12_2")
+except:
+    print("It is already initialised")
 
 # Initialize the database connection
 db_connection = connect_to_oracle()
 df = execute_query(db_connection)
-
-# cursor = db_connection.cursor()
-# sql_query = "SELECT * FROM SPS_SEP_COIL_ACQ"
-# cursor.execute(sql_query)
 
 # Data processing and analysis here
 # Average Flux of the coils for different current applied
