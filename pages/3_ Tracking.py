@@ -34,7 +34,10 @@ current_applied = st.session_state.current_applied
 kRefCoil = st.session_state.kRefCoil
 kMeasCoil = st.session_state.kMeasCoil
 afcorrlist = st.session_state.afcorrlist
+result_df = st.session_state.dtframe
 
+
+st.write(afcorrlist)
 aftrcorr_m5 = 10 
 aftrcorr_r5 = 20 
 diffm5r5 = aftrcorr_m5 - aftrcorr_r5
@@ -45,18 +48,22 @@ dvcorrlist = {}
 
 for current in current_applied:
 
-    for  row in afcorrlist:
-
-        if row['Current'] == current:
-
-            st.write(current)
-            print(aftrcorr_m5,aftrcorr_r5)
-            print(diffm5r5)
-            print (dvvref)
-            print(dvcorrected)
-
-
-for current, dvcorr in dvcorrlist:
+    filtered_df = result_df[(result_df['Current'] == current) & (result_df["Coil"] == 'R5')]
     
-    #table
-    print(current, aftrcorr_m5, dvcorr)
+    try:
+        value = filtered_df['After Correction']
+        st.write(value)
+    except:
+        st.write("nope")
+
+    for  index, dict in enumerate(afcorrlist):
+        if dict['Coil'] == 'R5':
+            continue
+
+        # if dict['Current'] == current:
+            
+        #     # Display the selected table
+        #     st.write(f" Current {current}:")
+        #     st.dataframe(filtered_df, hide_index=1, width=600)
+            
+            

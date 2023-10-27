@@ -16,16 +16,32 @@ add_bg_from_url(title)
 
 
 
-# Create a collapsible section for coil resistances
-with st.expander("Coil Resistances"):
-    coilMeasResistance = {
-        "M1": 0.0, "M2": 0.0, "M3": 0.0, "M4": 0.0,
-        "M5": 0.0, "M6": 0.0, "M7": 0.0, "M8": 0.0, "M9": 0.0
-    }
+current_applied = st.session_state.current_applied
+kRefCoil = st.session_state.kRefCoil
+kMeasCoil = st.session_state.kMeasCoil
+afcorrlist = st.session_state.afcorrlist
+result_df = st.session_state.dtframe
 
-    # Collect user inputs for coil resistances
-    for coil_name in coilMeasResistance:
-        coilMeasResistance[coil_name] = st.number_input(f"{coil_name} Resistance", 0.0)
+for current in current_applied:
+    filtered_df = result_df[result_df['Current'] == current].iloc[:, 1:]
+    # Display the selected table
+    st.write(f" Current {current}:")
+    st.dataframe(filtered_df, hide_index=1, width=600) 
 
-# Display the collected values
-st.write("Collected Coil Resistances:", coilMeasResistance)
+# for current in current_applied:
+#     st.write(current)
+
+#     for  index, dict in enumerate(afcorrlist):
+#         if dict['Coil'] == 'R5':
+#             continue
+
+#         if dict['Current'] == current:
+            
+            
+#             st.write(dict['Coil'])
+#             st.write("after correction",dict['After Correction'])
+            
+#             print(aftrcorr_m5,aftrcorr_r5)
+#             print(diffm5r5)
+#             print (dvvref)
+#             print(dvcorrected)

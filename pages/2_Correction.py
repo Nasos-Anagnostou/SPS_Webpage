@@ -10,6 +10,9 @@ import pandas as pd
 if "afcorrlist" not in st.session_state:
     st.session_state['afcorrlist'] = []
 
+if "dtframe" not in st.session_state:
+    st.session_state['dtframe'] = None
+
 if "current_applied" not in st.session_state:
     st.session_state['current_applied'] = []
 
@@ -53,6 +56,7 @@ def show_results(current_applied,coils_used,impedance_img):
 
     # Create a DataFrame from the data_list
     result_df = pd.DataFrame(st.session_state.afcorrlist)
+    st.session_state.dtframe = result_df
     # Create two columns for arranging items side by side
     left_column, right_column = st.columns(2)
 
