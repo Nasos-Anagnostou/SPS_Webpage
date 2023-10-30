@@ -1,6 +1,9 @@
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 from custom_funct import *
+import pandas as pd
+import matplotlib.pyplot as plt
+import plotly.express as px
 
 # Initialization of the st.session variables
 if "afcorrlist" not in st.session_state:
@@ -37,33 +40,60 @@ afcorrlist = st.session_state.afcorrlist
 result_df = st.session_state.dtframe
 
 
-st.write(afcorrlist)
-aftrcorr_m5 = 10 
-aftrcorr_r5 = 20 
-diffm5r5 = aftrcorr_m5 - aftrcorr_r5
-dvvref = 1000 * (diffm5r5/aftrcorr_r5)
-dvcorrected = dvvref - (1000* (1-kRefCoil) )
-dvcorrlist = {}
-
+tracking_list = []
 
 for current in current_applied:
 
-    filtered_df = result_df[(result_df['Current'] == current) & (result_df["Coil"] == 'R5')]
+    # Extract 'After Correction' values where 'Coil' is 'R5' and 'M5'
+    r5_aftcorr = [entry["After Correction"] for entry in afcorrlist if (entry["Coil"] == "R5" and entry["Current"] == current)]
+    r5_aftcorr = r5_aftcorr[0]
     
-    try:
-        value = filtered_df['After Correction']
-        st.write(value)
-    except:
-        st.write("nope")
+    # Extract 'After Correction' value where 'Coil' is 'R5'
+    m5_aftercorr = [entry["After Correction"] for entry in afcorrlist if (entry["Coil"] == "M5" and entry["Current"] == current)]
+    m5_aftercorr = m5_aftercorr[0]
 
-    for  index, dict in enumerate(afcorrlist):
-        if dict['Coil'] == 'R5':
-            continue
+    dVcorr = m5_aftercorr - r5_aftcorr
+    dv_vref = 1000 * ( dVcorr / r5_aftcorr)
+    dvcorr_vref = dv_vref - (1000* kMeasCoil[4] - kRefCoil)
 
-        # if dict['Current'] == current:
-            
-        #     # Display the selected table
-        #     st.write(f" Current {current}:")
-        #     st.dataframe(filtered_df, hide_index=1, width=600)
+    # Creating a DataFrame
+    data = {
+        'Current': current,
+        'R5': r5_aftcorr,
+        'M5': m5_aftercorr,
+        'M5-R5': dVcorr,
+        '(Vmeas-Vref)/Vref': dv_vref,
+        'dV/Vref corrected': dvcorr_vref
+    }
+    tracking_list.append(data)
+
+empty_line(3)
+st.header("Tracking Results")
+df_tracking = pd.DataFrame(tracking_list)
+st.dataframe(df_tracking, hide_index=1, use_container_width=True)
+
+st.header("Line Charts for Magnetization Curve and Tracking")
+# Create two columns for arranging items side by side
+left_column, right_column = st.columns(2)
+
+with left_column:
+    # Create a line chart using Plotly Express
+    fig = px.line(df_tracking, x='Current', y='M5', title='Magnetization curve', markers= True, 
+                labels={'Current': 'Current in A', 'M5': 'Flux (V.s)'})
+    fig.update_layout(title_x = 0.4)
+    fig.update_traces(marker=dict(color='white', size=8))
+
+    st.plotly_chart(fig)
+
+with right_column:
+    # Create a line chart using Plotly Express
+    fig = px.line(df_tracking, x='Current', y='dV/Vref corrected', title='Tracking', markers= True, 
+                labels={'Current': 'Current in A', 'M5': 'dG/G (E-3)'})
+    fig.update_layout(title_x = 0.4)
+    fig.update_traces(marker=dict(color='white', size=8))
+
+    st.plotly_chart(fig)
+
+
             
             
