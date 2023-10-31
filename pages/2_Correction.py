@@ -16,6 +16,9 @@ if "dtframe" not in st.session_state:
 if "current_applied" not in st.session_state:
     st.session_state['current_applied'] = []
 
+if "coils_used" not in st.session_state:
+    st.session_state['coils_used'] = []
+
 if "kRefCoil" not in st.session_state:
     st.session_state['kRefCoil'] = 0
 
@@ -113,7 +116,7 @@ if not df.empty:
             coilMeasResistance["R5"] = coilRefResistance
 
         st.session_state.current_applied = (250, 1000, 2500, 4000, 4900)
-        coils_used = ("R5", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9")
+        st.session_state.coils_used = ("R5", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9")
         impedance_img = "images/Impedance_dipole.png"
     
 
@@ -146,7 +149,7 @@ if not df.empty:
             coilMeasResistance["R5"] = coilRefResistance
 
         st.session_state.current_applied = (250, 1000, 2500, 4000, 4900)
-        coils_used = ("R5", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9")
+        st.session_state.coils_used = ("R5", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9")
         impedance_img = "images/Impedance_dipole.png"
 
     elif "Quadrupole" in basic_info['MAGNET_MEASURED']:
@@ -178,16 +181,18 @@ if not df.empty:
             coilMeasResistance["R5"] = coilRefResistance
 
         st.session_state.current_applied = (100, 400, 1000, 1540, 1938)
-        coils_used = ("R5", "M2", "M3", "M4", "M5", "M6", "M7", "M8")
+        st.session_state.coils_used = ("R5", "M2", "M3", "M4", "M5", "M6", "M7", "M8")
         impedance_img = "images/Impedance_quadrople.png"
     
     else:
         st.write("Error! Something went wrong with the magnet selection.")
 
+    # get the session state variables
     current_applied = st.session_state.current_applied
     kRefCoil = st.session_state.kRefCoil
     kMeasCoil = st.session_state.kMeasCoil
     afcorrlist =st.session_state.afcorrlist
+    coils_used = st.session_state.coils_used
 
     # Define a radio button to select input method
     input_method = st.radio("Select Input Method", ["Default Values", "Custom Input"])

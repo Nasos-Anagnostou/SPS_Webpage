@@ -9,6 +9,9 @@ import plotly.express as px
 if "afcorrlist" not in st.session_state:
     st.session_state['afcorrlist'] = []
 
+if "dtframe" not in st.session_state:
+    st.session_state['dtframe'] = None
+
 if "current_applied" not in st.session_state:
     st.session_state['current_applied'] = []
 
@@ -33,12 +36,11 @@ st.set_page_config(page_title="Magnetic Measurements SPS Database 🧲📏", pag
 add_bg_from_url(title)
 ######################################## THE LAYOUT OF THE PAGE ###########################################
 
+# get the session state variables
 current_applied = st.session_state.current_applied
 kRefCoil = st.session_state.kRefCoil
 kMeasCoil = st.session_state.kMeasCoil
 afcorrlist = st.session_state.afcorrlist
-result_df = st.session_state.dtframe
-
 
 tracking_list = []
 
@@ -46,10 +48,8 @@ for current in current_applied:
 
     # Extract 'After Correction' values where 'Coil' is 'R5' and 'M5'
     r5_aftcorr = [entry["After Correction"] for entry in afcorrlist if (entry["Coil"] == "R5" and entry["Current"] == current)]
-    r5_aftcorr = r5_aftcorr[0]
-    
-    # Extract 'After Correction' value where 'Coil' is 'R5'
     m5_aftercorr = [entry["After Correction"] for entry in afcorrlist if (entry["Coil"] == "M5" and entry["Current"] == current)]
+    r5_aftcorr = r5_aftcorr[0]
     m5_aftercorr = m5_aftercorr[0]
 
     dVcorr = m5_aftercorr - r5_aftcorr
@@ -62,12 +62,11 @@ for current in current_applied:
         'R5': r5_aftcorr,
         'M5': m5_aftercorr,
         'M5-R5': dVcorr,
-        '(Vmeas-Vref)/Vref': dv_vref,
-        'dV/Vref corrected': dvcorr_vref
+        '(Vmeas-Vref)/Vref   (E-3)': dv_vref,
+        'dV/Vref corrected   (E-3)': dvcorr_vref
     }
     tracking_list.append(data)
 
-empty_line(3)
 st.header("Tracking Results")
 df_tracking = pd.DataFrame(tracking_list)
 st.dataframe(df_tracking, hide_index=1, use_container_width=True)
@@ -87,7 +86,7 @@ with left_column:
 
 with right_column:
     # Create a line chart using Plotly Express
-    fig = px.line(df_tracking, x='Current', y='dV/Vref corrected', title='Tracking', markers= True, 
+    fig = px.line(df_tracking, x='Current', y='dV/Vref corrected   (E-3)', title='Tracking', markers= True, 
                 labels={'Current': 'Current in A', 'M5': 'dG/G (E-3)'})
     fig.update_layout(title_x = 0.4)
     fig.update_traces(marker=dict(color='white', size=8))
