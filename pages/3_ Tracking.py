@@ -2,7 +2,6 @@ import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 from custom_funct import *
 import pandas as pd
-import matplotlib.pyplot as plt
 import plotly.express as px
 
 # Initialization of the st.session variables
@@ -19,7 +18,7 @@ if "kRefCoil" not in st.session_state:
     st.session_state['kRefCoil'] = 0
 
 if "kMeasCoil" not in st.session_state:
-    st.session_state['kMeasCoil'] = []
+    st.session_state['kMeasCoil'] = None
 
 ####################################################### INITIALIZATION ###############################################################
 # init the styles of fonts
@@ -54,7 +53,7 @@ for current in current_applied:
 
     dVcorr = m5_aftercorr - r5_aftcorr
     dv_vref = 1000 * ( dVcorr / r5_aftcorr)
-    dvcorr_vref = dv_vref - (1000* kMeasCoil[4] - kRefCoil)
+    dvcorr_vref = dv_vref - (1000* kMeasCoil["M5"] - kRefCoil)
 
     # Creating a DataFrame
     data = {

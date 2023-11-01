@@ -3,8 +3,7 @@ from streamlit_extras.switch_page_button import switch_page
 from custom_funct import *
 from dbconnection import *
 
-
-
+    
 ######################################## THE LAYOUT OF THE PAGE ###########################################
 #config of the page
 st.set_page_config(page_title="Magnetic Measurements SPS Database 🧲📏", page_icon="🧲", layout="wide",
