@@ -1,5 +1,6 @@
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
+from streamlit_extras.row import row 
 from custom_funct import *
 import pandas as pd
 import plotly.express as px
@@ -104,15 +105,22 @@ column_names = df_filtered.columns[1:].tolist()  # Exclude the 'Position' column
 left_column, right_column = st.columns(2)
 
 with left_column:
+    #selected_table = st.selectbox("Select a Table", ("Mi-M5","Vmeas-Vref /Vref (E-3)", "Vmeas-Vref /Vref (E-3) corrected" ))
     st.header("Mi-M5")
     st.dataframe(df,use_container_width= True)
-    st.header("(Vmeas-Vref)/Vref (E-3)")
-    st.dataframe(df_dv,use_container_width= True)
+    
+    
+    
+    st.header("Vmeas-Vref /Vref (E-3) corrected")
+    st.dataframe(df_dvcorr,use_container_width= True)
 
 with right_column:
-    #dG/Gref (E-3)
+    st.header("Vmeas-Vref /Vref (E-3)")
+    st.dataframe(df_dv,use_container_width= True)
+
+    st.header("Homogeneity shown only for x-axis coils")
     # Create Plotly figure
-    fig = px.line(df_filtered, x='Position', title='Homogeneity shown only for x-axis coils', markers=True,
+    fig = px.line(df_filtered, x='Position', title='Homogeneity', markers=True,
                    labels={'Position': 'Position of the coil with respect to the central coil (mm)', 'value':'dG/Gref (E-3)'})
     # Add lines for each column in column_names
     for col in column_names:
@@ -120,10 +128,7 @@ with right_column:
 
     fig.update_layout(title_x = 0.3)
     fig.update_layout(yaxis_title = "dG/Gref (E-3)")
-    # Rounding the y-axis tick values to two decimal places
-
     fig.update_yaxes(showticklabels=False)
     st.plotly_chart(fig)
 
-    st.header("(Vmeas-Vref)/Vref (E-3) corrected")
-    st.dataframe(df_dvcorr,use_container_width= True)
+

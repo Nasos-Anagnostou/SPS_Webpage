@@ -1,13 +1,22 @@
 import streamlit as st
-from streamlit_extras.switch_page_button import switch_page
+from streamlit_extras.row import row 
+
 from custom_funct import *
 from dbconnection import df,average_data,stddev_data
 import pandas as pd
+from datetime import datetime
+
 
 
 # Initialization of the st.session variables
 if "magnettype" not in st.session_state:
     st.session_state['magnettype'] = ""
+
+if "coilMeasResistance" not in st.session_state:
+    st.session_state['coilMeasResistance'] = {}
+
+if "impedance_img" not in st.session_state:
+    st.session_state['impedance_img'] = ""
 
 if "afcorrlist" not in st.session_state:
     st.session_state['afcorrlist'] = []
@@ -41,6 +50,29 @@ add_bg_from_url(title)
 if not df.empty:   
     # Access the basic information for the first row (iloc[0])
     basic_info = df.iloc[0]
+    st.subheader("Basic Measurement Info")
+
+    # format date-time and workorder
+    date_time = datetime.strptime(basic_info['MEASUREMENT_DATE'], "%Y%m%d_%H%M%S")
+    form_date_time = date_time.strftime("%H:%M   %d/%m/%Y")
+    wrkord_str = str(basic_info['WORKORDER_N'])
+    mgnt_meas = basic_info['MAGNET_MEASURED'].replace("Magnet measured:","").strip()
+    mgnt_ref = basic_info['MAGNET_REFERENCE'].replace("Reference magnet:","").strip()
+    flux_meas = basic_info['FLUXMETER_MEASURED'].replace("Fluxmeter in the measured magnet:","").strip()
+    flux_ref = basic_info['FLUXMETER_REFERENCE'].replace("Fluxmeter in the reference magnet:","").strip()
+    # Create a table to display the information
+    basic_info_table = pd.DataFrame(
+        {
+            'Workorder number': wrkord_str,
+            'Date Measured': form_date_time,
+            'Magnet Measured': mgnt_meas,
+            'Magnet Reference': mgnt_ref,
+            'Fluxmeter Measured': flux_meas,
+            'Fluxmeter Reference': [flux_ref]
+        }
+    )
+    st.dataframe(basic_info_table, use_container_width= True, hide_index= True)
+
     
     if "MBA" in basic_info['MAGNET_MEASURED']:
         st.session_state.magnettype = "Dipole"
@@ -54,7 +86,7 @@ if not df.empty:
 
         if "A7" in basic_info['FLUXMETER_MEASURED']:
             kMeasCoil = [0.0, 0.002990, 0.0, 0.002670, 0.002680, 0.003990, 0.0, 0.003970, 0.0] # M1, M2, M3, M4, M5, M6, M7, M8, M9
-            coilMeasResistance = {
+            st.session_state.coilMeasResistance = {
                 "R5": coilRefResistance,
                 "M1": 6358.0,
                 "M2": 6344.0,
@@ -68,12 +100,12 @@ if not df.empty:
             }
         elif "Other" in basic_info['FLUXMETER_MEASURED']:
             kMeasCoil = [0.0] * 9  # M1, M2, M3, M4, M5, M6, M7, M8, M9
-            coilMeasResistance = {f"M{i}": 6400.0 for i in range(1, 10)}
-            coilMeasResistance["R5"] = coilRefResistance
+            st.session_state.coilMeasResistance = {f"M{i}": 6400.0 for i in range(1, 10)}
+            st.session_state.coilMeasResistance["R5"] = coilRefResistance
 
         st.session_state.current_applied = (250, 1000, 2500, 4000, 4900)
         st.session_state.coils_used = ("R5", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9")
-        impedance_img = "images/Impedance_dipole.png"
+        st.session_state.impedance_img = "images/Impedance_dipole.png"
     
 
     elif "MBB" in basic_info['MAGNET_MEASURED']:
@@ -102,12 +134,12 @@ if not df.empty:
             }
         elif "Other" in basic_info['FLUXMETER_MEASURED']:
             kMeasCoil = [0.0] * 9  # M1, M2, M3, M4, M5, M6, M7, M8, M9
-            coilMeasResistance = {f"M{i}": 6400.0 for i in range(1, 10)}
-            coilMeasResistance["R5"] = coilRefResistance
+            st.session_state.coilMeasResistance = {f"M{i}": 6400.0 for i in range(1, 10)}
+            st.session_state.coilMeasResistance["R5"] = coilRefResistance
 
         st.session_state.current_applied = (250, 1000, 2500, 4000, 4900)
         st.session_state.coils_used = ("R5", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9")
-        impedance_img = "images/Impedance_dipole.png"
+        st.session_state.impedance_img = "images/Impedance_dipole.png"
 
     elif "Quadrupole" in basic_info['MAGNET_MEASURED']:
         st.session_state.magnettype = "Quadrupole"
@@ -135,68 +167,42 @@ if not df.empty:
             }
         elif "Other" in basic_info['FLUXMETER_MEASURED']:
             kMeasCoil = [0.0] * 9  # M1, M2, M3, M4, M5, M6, M7, M8, M9
-            coilMeasResistance = {f"M{i}": 3900.0 for i in range(1, 10)}
-            coilMeasResistance["R5"] = coilRefResistance
+            st.session_state.coilMeasResistance = {f"M{i}": 3900.0 for i in range(1, 10)}
+            st.session_state.coilMeasResistance["R5"] = coilRefResistance
 
         st.session_state.current_applied = (100, 400, 1000, 1540, 1938)
         st.session_state.coils_used = ("R5", "M2", "M3", "M4", "M5", "M6", "M7", "M8")
-        impedance_img = "images/Impedance_quadrople.png"
+        st.session_state.impedance_img = "images/Impedance_quadrople.png"
     
     else:
         st.write("Error! Something went wrong with the magnet selection.")
 
     # Creating the dictionary
     st.session_state.kMeasCoil = {key: value for key, value in zip(['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'], kMeasCoil)}
+    
+    # Display the data in a Streamlit table
 
-    st.title("Measurement Information")
+    st.title("Magnetic Measurements Data")
+    df = df.iloc[:, 7:]
+    st.dataframe(df, use_container_width= True)
 
-    # # Display the basic information
-    # st.subheader("Basic Measurement Info")
-    # st.write(f"Workorder number: {basic_info['WORKORDER_N']}")
-    # st.write(f"Date Measured: {basic_info['MEASUREMENT_DATE']}")
-    # st.write(f"{basic_info['MAGNET_MEASURED']}")
-    # st.write(f"{basic_info['MAGNET_REFERENCE']}")
-    # st.write(f"{basic_info['FLUXMETER_MEASURED']}")
-    # st.write(f"{basic_info['FLUXMETER_REFERENCE']}")
-    # Display the basic information in a horizontal layout
-    # Display the basic information in a table
-    st.subheader("Basic Measurement Info")
+    # Create two columns for arranging items side by side
+    left_column, right_column = st.columns(2)
 
-    # Create a table to display the information
-    basic_info_table = pd.DataFrame(
-        {
-            'Workorder number': [basic_info['WORKORDER_N']],
-            'Date Measured': [basic_info['MEASUREMENT_DATE']],
-            'Magnet Measured': [basic_info['MAGNET_MEASURED']],
-            'Magnet Reference': [basic_info['MAGNET_REFERENCE']],
-            'Fluxmeter Measured': [basic_info['FLUXMETER_MEASURED']],
-            'Fluxmeter Reference': [basic_info['FLUXMETER_REFERENCE']]
-        }
-    )
-    st.table(basic_info_table)
 
+    with left_column:
+        # for a specific workorder,date, etc 
+        st.title("Average Flux")
+        # Display the pivoted data
+        st.dataframe(average_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))      
+
+
+    with right_column:
+        st.title("Stddev Flux")
+        # Display the pivoted data
+        st.dataframe(stddev_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))
 
 else:
     st.write("No measurement information found in the DataFrame.")
 
 
- # Display the data in a Streamlit table
-st.title("Magnetic Measurements Data")
-df = df.iloc[:, 7:]
-st.dataframe(df, width=1200)
-
-# Create two columns for arranging items side by side
-left_column, right_column = st.columns(2)
-
-
-with left_column:
-    # for a specific workorder,date, etc 
-    st.title("Average Flux")
-    # Display the pivoted data
-    st.dataframe(average_data)      
-
-
-with right_column:
-    st.title("Stddev Flux")
-    # Display the pivoted data
-    st.dataframe(stddev_data)

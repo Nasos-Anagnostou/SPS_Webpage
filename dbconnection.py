@@ -42,15 +42,17 @@ except:
 # Initialize the database connection
 db_connection = connect_to_oracle()
 df = execute_query(db_connection)
+df = df.rename(columns={'CURRENT_APPLIED':'Current'})
 
 # Data processing and analysis here
 # Average Flux of the coils for different current applied
-avg_data = df.pivot_table(index='CURRENT_APPLIED', values=['R5', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'], aggfunc='mean')
+avg_data = df.pivot_table(index='Current', values=['R5', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'], aggfunc='mean')
+
 average_data = avg_data.style.format("{:.6f}")
 
 # Stddev Flux of the coils for different current applied
-grouped_data = df.groupby('CURRENT_APPLIED')[['R5', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9']].std()
-pivoted_data = grouped_data.reset_index().pivot_table(index='CURRENT_APPLIED')
+grouped_data = df.groupby('Current')[['R5', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9']].std()
+pivoted_data = grouped_data.reset_index().pivot_table(index='Current')
 stddev_data = pivoted_data.style.format("{:.6f}")
 
 

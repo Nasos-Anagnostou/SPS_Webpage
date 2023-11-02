@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
-
+from streamlit_extras.row import row 
 from custom_funct import *
 from dbconnection import *
 import pandas as pd
@@ -9,6 +9,9 @@ import pandas as pd
 # Initialization of the st.session variables
 if "magnettype" not in st.session_state:
     st.session_state['magnettype'] = ""
+
+if "coilMeasResistance" not in st.session_state:
+    st.session_state['coilMeasResistance'] = {}
 
 if "afcorrlist" not in st.session_state:
     st.session_state['afcorrlist'] = []
@@ -38,9 +41,8 @@ add_bg_from_url(title)
 ######################################## THE LAYOUT OF THE PAGE ###########################################
 
 fdiInputImpedance   = 400010
-coilMeasResistance = {}
 
-def show_results(current_applied,coils_used,impedance_img):
+def show_results(current_applied,coils_used):
     # Initialize an empty dictionary to store DataFrames
     st.session_state.afcorrlist = []
     for current in current_applied:
@@ -63,35 +65,35 @@ def show_results(current_applied,coils_used,impedance_img):
     # Create a DataFrame from the data_list
     result_df = pd.DataFrame(st.session_state.afcorrlist)
     st.session_state.dtframe = result_df
-    # Create two columns for arranging items side by side
-    left_column, right_column = st.columns(2)
 
-    # Add content to the left column
-    with left_column:
-        # Create a dropdown menu for selecting the "current" value
-        selected_current = st.selectbox("Select a Current", current_applied)
-        # Filter the DataFrame based on the selected "current"
-        filtered_df = result_df[result_df['Current'] == selected_current].iloc[:, 1:]
+    # Create a dropdown menu for selecting the "current" value
+    row1 = row([0.3, 0.7], vertical_align="center")
+    selected_current = row1.selectbox("Select a Current", current_applied)
+    row1.write("")
+    
+    # Filter the DataFrame based on the selected "current"
+    filtered_df = result_df[result_df['Current'] == selected_current].iloc[:, 1:]
 
-        # Display the selected table
-        st.write(f" Current {selected_current}:")
-        st.dataframe(filtered_df, hide_index=1, width=600)        
-
-    # Add content to the right column
-    with right_column:
-        empty_line(5)
-        st.write("Impedance of every coil")
-        st.image(impedance_img)
-        st.image("images/Correction_image.png")
+    # Display the selected table
+    st.header(f" Current {selected_current}:")
+    st.dataframe(filtered_df, hide_index=1, width=600)        
 
 
+
+
+# Check if there is data in the DataFrame
+if not df.empty:   
     # get the session state variables
     current_applied = st.session_state.current_applied
     coils_used = st.session_state.coils_used
+    impedance_img = st.session_state.impedance_img
+    kRefCoil = st.session_state.kRefCoil
+    kMeasCoil = st.session_state.kMeasCoil
+    coilMeasResistance = st.session_state.coilMeasResistance
 
 
     # Define a radio button to select input method
-    input_method = st.radio("Select Input Method", ["Default Values", "Custom Input"])
+    input_method = st.radio("Select Input Method", ["Default Values", "Custom Input"], horizontal= True)
     # Create two columns for arranging items side by side
     left_column, right_column = st.columns(2)
     
@@ -103,15 +105,21 @@ def show_results(current_applied,coils_used,impedance_img):
                     coilMeasResistance[coil_name] = st.number_input(f"{coil_name} Resistance", 0.0)
             
         with right_column:
-            show_results(current_applied,coils_used,impedance_img)
+            show_results(current_applied,coils_used)
             #     # Create a "Show Results" button
             #     if st.button("Show Results"):
             #         # Display the selected values
                     
     else:
-        show_results(current_applied,coils_used,impedance_img)
-       
+        with left_column:
+            show_results(current_applied,coils_used)
 
+        with right_column:
+            st.header("Impedance of every coil")
+            st.image(impedance_img)
+            st.image("images/Correction_image.png")
+else:
+    st.write("No measurement information found in the DataFrame.")
 
 
 
