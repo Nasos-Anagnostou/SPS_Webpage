@@ -4,13 +4,20 @@ import streamlit as st
 import base64
 from io import BytesIO
 import validators  # You need to import the validators library
-
+from st_aggrid import GridOptionsBuilder, AgGrid
+import pandas as pd
 
 ####################################################### INITIALIZATION ###############################################################
 # init the styles of fonts
 homepage = '<p style="font-family:Arial Black; color:black; font-size: 200%;"><strong>Homepage 🏠</strong></p>'
 comp = '<p style="font-family:Arial Black; color:#262730; font-size: 150%;"><strong>Chose competition🏆</strong></p>'
 title = '<p style="font-family:Arial Black; color:white; font-size: 300%; text-align: center;">Magnetic Measurements SPS Database 🧲💾</p>'
+
+
+# Function to modify the string
+def modify_string(replacements):
+    
+    return replacements.split(':')[-1].strip()
 
 # insert empty spaces
 def empty_line(lines_number):
@@ -89,4 +96,31 @@ def add_bg_from_url(title):
 
 
 
+def make_df(data, alldata):
 
+    gb = GridOptionsBuilder.from_dataframe(data)
+    if alldata:
+        gb.configure_grid_options(pagination = True,alwaysShowHorizontalScroll = True)
+
+    gb.configure_side_bar()  # Add a sidebar
+    gb.configure_selection('multiple', use_checkbox=False, groupSelectsChildren="Group checkbox select children")  # Enable multi-row selection
+    gb.configure_auto_height(False)
+    gridOptions = gb.build()
+
+    grid_response = AgGrid(
+        data,
+        gridOptions=gridOptions,
+        data_return_mode='AS_INPUT',
+        update_mode='MODEL_CHANGED',
+        fit_columns_on_grid_load= not alldata,
+        theme='alpine',  # Add theme color to the table
+        enable_enterprise_modules=True,
+        height=850,
+        width="Any",
+    )
+    data = grid_response['data']
+    selected = grid_response['selected_rows']
+    df = pd.DataFrame(selected)  # Pass the selected rows to a new dataframe df
+    df = df.iloc[:, 1:]
+
+    return df

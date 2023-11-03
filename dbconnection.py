@@ -1,6 +1,7 @@
 import cx_Oracle
 import pandas as pd
-import streamlit as st
+from custom_funct import modify_string
+from datetime import datetime
 
 
 def connect_to_oracle():
@@ -43,6 +44,18 @@ except:
 db_connection = connect_to_oracle()
 df = execute_query(db_connection)
 df = df.rename(columns={'CURRENT_APPLIED':'Current'})
+
+# Convert the 'MEASUREMENT_DATE' column to datetime format
+df['MEASUREMENT_DATE'] = pd.to_datetime(df['MEASUREMENT_DATE'], format='%Y%m%d_%H%M%S', errors='coerce')
+# Convert the second date format
+df['MEASUREMENT_DATE'] = df['MEASUREMENT_DATE'].combine_first(pd.to_datetime(df['MEASUREMENT_DATE'], format='%Y-%m-%d', errors='coerce'))
+# Format the 'MEASUREMENT_DATE' column as required
+df['MEASUREMENT_DATE'] = df['MEASUREMENT_DATE'].dt.strftime("%H:%M   %d/%m/%Y")
+
+df['MAGNET_MEASURED'] = df['MAGNET_MEASURED'].apply(modify_string)
+df['MAGNET_REFERENCE'] = df['MAGNET_REFERENCE'].apply(modify_string)
+df['FLUXMETER_MEASURED'] = df['FLUXMETER_MEASURED'].apply(modify_string,)
+df['FLUXMETER_REFERENCE'] = df['FLUXMETER_REFERENCE'].apply(modify_string)
 
 # Data processing and analysis here
 # Average Flux of the coils for different current applied
