@@ -4,7 +4,7 @@ from streamlit_extras.row import row
 from custom_funct import *
 import pandas as pd
 import plotly.express as px
-import numpy as np
+
 
 
 # Initialization of the st.session variables
@@ -126,8 +126,9 @@ with right_column:
     for col in column_names:
         fig.add_scatter(x=df_filtered['Position'], y=df_filtered[col], name=col)
 
-    fig.update_layout(title_x = 0.3)
-    fig.update_layout(yaxis_title = "dG/Gref (E-3)")
+    fig.update_layout(title_x = 0.35, title_font =dict(size=30))
+    fig.update_layout(yaxis=dict(title=dict(text="dG/Gref (E-3)", font=dict(size=25))))
+
     fig.update_yaxes(showticklabels=False)
     st.plotly_chart(fig)
 

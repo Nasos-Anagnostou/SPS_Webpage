@@ -31,6 +31,9 @@ if "kRefCoil" not in st.session_state:
 if "kMeasCoil" not in st.session_state:
     st.session_state['kMeasCoil'] = None
 
+if "avg_data" not in st.session_state:
+    st.session_state['avg_data'] = None
+
 ######################################## THE LAYOUT OF THE PAGE ###########################################
 #config of the page
 st.set_page_config(page_title="Magnetic Measurements SPS Database 🧲📏", page_icon="🧲", layout="wide",
@@ -41,6 +44,7 @@ add_bg_from_url(title)
 ######################################## THE LAYOUT OF THE PAGE ###########################################
 
 fdiInputImpedance   = 400010
+avg_data = st.session_state.avg_data
 
 def show_results(current_applied,coils_used):
     # Initialize an empty dictionary to store DataFrames
