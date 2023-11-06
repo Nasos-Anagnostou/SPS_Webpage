@@ -43,7 +43,6 @@ except:
 # Initialize the database connection
 db_connection = connect_to_oracle()
 df = execute_query(db_connection)
-df = df.rename(columns={'CURRENT_APPLIED':'Current'})
 
 # Convert the 'MEASUREMENT_DATE' column to datetime format
 df['MEASUREMENT_DATE'] = pd.to_datetime(df['MEASUREMENT_DATE'], format='%Y%m%d_%H%M%S', errors='coerce')
@@ -56,18 +55,6 @@ df['MAGNET_MEASURED'] = df['MAGNET_MEASURED'].apply(modify_string)
 df['MAGNET_REFERENCE'] = df['MAGNET_REFERENCE'].apply(modify_string)
 df['FLUXMETER_MEASURED'] = df['FLUXMETER_MEASURED'].apply(modify_string,)
 df['FLUXMETER_REFERENCE'] = df['FLUXMETER_REFERENCE'].apply(modify_string)
-
-# Data processing and analysis here
-# Average Flux of the coils for different current applied
-avg_data = df.pivot_table(index='Current', values=['R5', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'], aggfunc='mean')
-
-average_data = avg_data.style.format("{:.6f}")
-
-# Stddev Flux of the coils for different current applied
-grouped_data = df.groupby('Current')[['R5', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9']].std()
-pivoted_data = grouped_data.reset_index().pivot_table(index='Current')
-stddev_data = pivoted_data.style.format("{:.6f}")
-
 
 # Close the connection
 db_connection.close()        

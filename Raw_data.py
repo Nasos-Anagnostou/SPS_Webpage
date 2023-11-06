@@ -3,9 +3,8 @@ from streamlit_extras.row import row
 from streamlit_extras.stateful_button import button
 
 from custom_funct import *
-from dbconnection import df,average_data,stddev_data
+from dbconnection import df
 import pandas as pd
-from datetime import datetime
 
 
 
@@ -46,184 +45,197 @@ st.set_page_config(page_title="Magnetic Measurements SPS Database 🧲📏", pag
 add_bg_from_url(title)
 ######################################## THE LAYOUT OF THE PAGE ###########################################
 
-# on = st.toggle('See all data')
+# coils used 
+coils_used = ['R5', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9']
 
-# if on:
-#     st.write('Measurement data currently stored in the database')
+# Define a radio button to select input method
+input_method = st.radio("Select Input Method", ["See all data","Choose a specific Workorder and Date"], horizontal= True)
 
-# Check if there is data in the DataFrame
-if not df.empty:
-    # Define a radio button to select input method
-    input_method = st.radio("Select Input Method", ["See all data","Choose a specific Workorder and Date"], horizontal= True)
+if input_method == "See all data":
+    # Display the data in a Streamlit table
+    st.title("Magnetic Measurements Data")
+    make_df(df,True)
 
-    if input_method == "See all data":
-        # Display the data in a Streamlit table
-        st.title("Magnetic Measurements Data")
-        make_df(df,True)
-
-    else:
-        # Create a dropdown menu for selecting the "current" value
-        row1 = row([0.5, 0.5], vertical_align="center")
-        workorder_input = row1.text_input('Provide the Workorder number','')
-        date_input = row1.date_input('Date of the measurement', value="today", format ="DD/MM/YYYY")
-        date_input = date_input.strftime('%d/%m/%Y')
-        st.write(workorder_input,date_input)
-
-        if button("Show measurement data", key="Button") and (workorder_input or date_input):
-            
-            df = df[df["MEASUREMENT_DATE"].astype(str).str.contains(date_input)]
-            
-            if not df.empty:
-                # Access the basic information for the first row (iloc[0])
-                basic_info = df.iloc[0]
-                df = df.iloc[:, 7:]
-                st.subheader("Basic Measurement Info")
-
-                # Create a table to display the information
-                basic_info_table = pd.DataFrame(
-                    {
-                        'Workorder number': str(basic_info['WORKORDER_N']),
-                        'Date Measured': [basic_info['MEASUREMENT_DATE']],
-                        'Magnet Measured': [basic_info['MAGNET_MEASURED']],
-                        'Magnet Reference': [basic_info['MAGNET_REFERENCE']],
-                        'Fluxmeter Measured': [basic_info['FLUXMETER_MEASURED']],
-                        'Fluxmeter Reference': [basic_info['FLUXMETER_REFERENCE']]
-
-                    }
-                )
-                st.dataframe(basic_info_table, use_container_width= True, hide_index= True)
-
-                
-                if "MBA" in basic_info['MAGNET_MEASURED']:
-                    st.session_state.magnettype = "Dipole"
-                    
-                    if "B4" in basic_info['FLUXMETER_REFERENCE']:
-                        st.session_state.kRefCoil = 0.004460  # R5
-                        coilRefResistance = 6384.0  # ohm
-                    elif "Other" in basic_info['FLUXMETER_REFERENCE']:
-                        st.session_state.kRefCoil = 0.0  # R5
-                        coilRefResistance = 6400.0 # ohm
-
-                    if "A7" in basic_info['FLUXMETER_MEASURED']:
-                        kMeasCoil = [0.0, 0.002990, 0.0, 0.002670, 0.002680, 0.003990, 0.0, 0.003970, 0.0] # M1, M2, M3, M4, M5, M6, M7, M8, M9
-                        st.session_state.coilMeasResistance = {
-                            "R5": coilRefResistance,
-                            "M1": 6358.0,
-                            "M2": 6344.0,
-                            "M3": 6348.0,
-                            "M4": 6387.0,
-                            "M5": 6342.0,
-                            "M6": 6404.0,
-                            "M7": 6347.0,
-                            "M8": 6357.0,
-                            "M9": 6355.0
-                        }
-                    elif "Other" in basic_info['FLUXMETER_MEASURED']:
-                        kMeasCoil = [0.0] * 9  # M1, M2, M3, M4, M5, M6, M7, M8, M9
-                        st.session_state.coilMeasResistance = {f"M{i}": 6400.0 for i in range(1, 10)}
-                        st.session_state.coilMeasResistance["R5"] = coilRefResistance
-
-                    st.session_state.current_applied = (250, 1000, 2500, 4000, 4900)
-                    st.session_state.coils_used = ("R5", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9")
-                    st.session_state.impedance_img = "images/Impedance_dipole.png"
-                
-
-                elif "MBB" in basic_info['MAGNET_MEASURED']:
-                    st.session_state.magnettype = "Dipole"
-
-                    if "B4" in basic_info['FLUXMETER_REFERENCE']:
-                        st.session_state.kRefCoil = 0.004460  # R5
-                        coilRefResistance = 6384.0  # ohm
-                    elif "Other" in basic_info['FLUXMETER_REFERENCE']:
-                        st.session_state.kRefCoil = 0.0  # R5
-                        coilRefResistance = 6500.0 # ohm
-
-                    if "B5" in basic_info['FLUXMETER_MEASURED']:
-                        kMeasCoil = [0.0, 0.004708, 0.0, 0.003518, 0.003898, 0.004478, 0.0, 0.004538, 0.0] # M1, M2, M3, M4, M5, M6, M7, M8, M9
-                        coilMeasResistance = {
-                            "R5": coilRefResistance,
-                            "M1": 6409.0,
-                            "M2": 6361.0,
-                            "M3": 6397.0,
-                            "M4": 6399.0,
-                            "M5": 6366.0,
-                            "M6": 6357.0,
-                            "M7": 6364.0,
-                            "M8": 6368.0,
-                            "M9": 6363.0
-                        }
-                    elif "Other" in basic_info['FLUXMETER_MEASURED']:
-                        kMeasCoil = [0.0] * 9  # M1, M2, M3, M4, M5, M6, M7, M8, M9
-                        st.session_state.coilMeasResistance = {f"M{i}": 6400.0 for i in range(1, 10)}
-                        st.session_state.coilMeasResistance["R5"] = coilRefResistance
-
-                    st.session_state.current_applied = (250, 1000, 2500, 4000, 4900)
-                    st.session_state.coils_used = ("R5", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9")
-                    st.session_state.impedance_img = "images/Impedance_dipole.png"
-
-                elif "Quadrupole" in basic_info['MAGNET_MEASURED']:
-                    st.session_state.magnettype = "Quadrupole"
-
-                    if "Q4" in basic_info['FLUXMETER_REFERENCE']:
-                        st.session_state.kRefCoil = -0.003890  # R5
-                        coilRefResistance = 39519.0  # ohm
-                    elif "Other" in basic_info['FLUXMETER_REFERENCE']:
-                        st.session_state.kRefCoil = 0.0  # R5
-                        coilRefResistance = 39000.0  # ohm
-
-                    if "Q2" in basic_info['FLUXMETER_MEASURED']:
-                        kMeasCoil = [0.0, 0.006720, 0.019860, 0.002840, -0.000290, 0.014550, 0.019280, 0.026890, 0.0]  # 0.0, M2, M3, M4, M5, M6, M7, M8, 0.0
-                        coilMeasResistance = {
-                            "R5": coilRefResistance,
-                            "M1": 0,
-                            "M2": 39651,
-                            "M3": 39655,
-                            "M4": 39658,
-                            "M5": 39547,
-                            "M6": 39556,
-                            "M7": 39623,
-                            "M8": 39734,
-                            "M9": 0
-                        }
-                    elif "Other" in basic_info['FLUXMETER_MEASURED']:
-                        kMeasCoil = [0.0] * 9  # M1, M2, M3, M4, M5, M6, M7, M8, M9
-                        st.session_state.coilMeasResistance = {f"M{i}": 3900.0 for i in range(1, 10)}
-                        st.session_state.coilMeasResistance["R5"] = coilRefResistance
-
-                    st.session_state.current_applied = (100, 400, 1000, 1540, 1938)
-                    st.session_state.coils_used = ("R5", "M2", "M3", "M4", "M5", "M6", "M7", "M8")
-                    st.session_state.impedance_img = "images/Impedance_quadrople.png"
-                
-                else:
-                    st.write("Error! Something went wrong with the magnet selection.")
-
-                # Creating the dictionary
-                st.session_state.kMeasCoil = {key: value for key, value in zip(['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'], kMeasCoil)}
-            
-                # Display the data in a Streamlit table
-                st.title("Magnetic Measurements Data")
-                make_df(df,False)
-
-                # Create two columns for arranging items side by side
-                left_column, right_column = st.columns(2)
-
-
-                with left_column:
-                    # for a specific workorder,date, etc 
-                    st.title("Average Flux")
-                    # Display the pivoted data
-                    st.dataframe(average_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))      
-
-
-                with right_column:
-                    st.title("Stddev Flux")
-                    # Display the pivoted data
-                    st.dataframe(stddev_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))
-            else:
-                st.subheader("The selected Date has no measurements")
-        else:
-            st.write("Please provide the Workorder number and/or Date first")
 else:
-    st.write("No measurement information found in the DataFrame.")
+
+    mydf = df.rename(columns={'CURRENT_APPLIED':'Current'})
+    row1 = row([0.5, 0.5], vertical_align="center")
+    workorder_input = row1.text_input('Provide the Workorder number','')
+    date_input = row1.date_input('Date of the measurement', value="today", format ="DD/MM/YYYY")
+    date_input = date_input.strftime('%d/%m/%Y')
+    st.write(workorder_input,date_input)
+
+    if workorder_input:
+        mydf = mydf[mydf["WORKORDER_N"].astype(str) == str(workorder_input)]
+    elif date_input:
+        mydf = mydf[mydf["MEASUREMENT_DATE"].astype(str).str.contains(date_input)]
+    elif workorder_input and date_input:
+        mydf = mydf[mydf["MEASUREMENT_DATE"].astype(str).str.contains(date_input)]
+        mydf = mydf[mydf["WORKORDER_N"].astype(str).str.contains(workorder_input)]
+    else:
+        st.write("Please provide a valid Workorder and/or Date first")
+
+    if st.button("Show measurement data", key="Button"):
+        
+        if not mydf.empty:
+
+            # Access the basic information for the first row (iloc[0])            
+            basic_info = mydf.iloc[0]
+            mydf = mydf.iloc[:, 7:]
+            st.subheader("Basic Measurement Info")
+            # Create a table to display the information
+            basic_info_table = pd.DataFrame(
+                {
+                    'Workorder number': str(basic_info['WORKORDER_N']),
+                    'Date Measured': [basic_info['MEASUREMENT_DATE']],
+                    'Magnet Measured': [basic_info['MAGNET_MEASURED']],
+                    'Magnet Reference': [basic_info['MAGNET_REFERENCE']],
+                    'Fluxmeter Measured': [basic_info['FLUXMETER_MEASURED']],
+                    'Fluxmeter Reference': [basic_info['FLUXMETER_REFERENCE']]
+
+                }
+            )
+            st.dataframe(basic_info_table, use_container_width= True, hide_index= True)
+
+            
+            if "MBA" in basic_info['MAGNET_MEASURED']:
+                st.session_state.magnettype = "Dipole"
+                
+                if "B4" in basic_info['FLUXMETER_REFERENCE']:
+                    st.session_state.kRefCoil = 0.004460  # R5
+                    coilRefResistance = 6384.0  # ohm
+                elif "Other" in basic_info['FLUXMETER_REFERENCE']:
+                    st.session_state.kRefCoil = 0.0  # R5
+                    coilRefResistance = 6400.0 # ohm
+
+                if "A7" in basic_info['FLUXMETER_MEASURED']:
+                    kMeasCoil = [0.0, 0.002990, 0.0, 0.002670, 0.002680, 0.003990, 0.0, 0.003970, 0.0] # M1, M2, M3, M4, M5, M6, M7, M8, M9
+                    st.session_state.coilMeasResistance = {
+                        "R5": coilRefResistance,
+                        "M1": 6358.0,
+                        "M2": 6344.0,
+                        "M3": 6348.0,
+                        "M4": 6387.0,
+                        "M5": 6342.0,
+                        "M6": 6404.0,
+                        "M7": 6347.0,
+                        "M8": 6357.0,
+                        "M9": 6355.0
+                    }
+                elif "Other" in basic_info['FLUXMETER_MEASURED']:
+                    kMeasCoil = [0.0] * 9  # M1, M2, M3, M4, M5, M6, M7, M8, M9
+                    st.session_state.coilMeasResistance = {f"M{i}": 6400.0 for i in range(1, 10)}
+                    st.session_state.coilMeasResistance["R5"] = coilRefResistance
+
+                st.session_state.current_applied = (250, 1000, 2500, 4000, 4900)
+                st.session_state.coils_used = ("R5", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9")
+                st.session_state.impedance_img = "images/Impedance_dipole.png"
+            
+
+            elif "MBB" in basic_info['MAGNET_MEASURED']:
+                st.session_state.magnettype = "Dipole"
+
+                if "B4" in basic_info['FLUXMETER_REFERENCE']:
+                    st.session_state.kRefCoil = 0.004460  # R5
+                    coilRefResistance = 6384.0  # ohm
+                elif "Other" in basic_info['FLUXMETER_REFERENCE']:
+                    st.session_state.kRefCoil = 0.0  # R5
+                    coilRefResistance = 6500.0 # ohm
+
+                if "B5" in basic_info['FLUXMETER_MEASURED']:
+                    kMeasCoil = [0.0, 0.004708, 0.0, 0.003518, 0.003898, 0.004478, 0.0, 0.004538, 0.0] # M1, M2, M3, M4, M5, M6, M7, M8, M9
+                    coilMeasResistance = {
+                        "R5": coilRefResistance,
+                        "M1": 6409.0,
+                        "M2": 6361.0,
+                        "M3": 6397.0,
+                        "M4": 6399.0,
+                        "M5": 6366.0,
+                        "M6": 6357.0,
+                        "M7": 6364.0,
+                        "M8": 6368.0,
+                        "M9": 6363.0
+                    }
+                elif "Other" in basic_info['FLUXMETER_MEASURED']:
+                    kMeasCoil = [0.0] * 9  # M1, M2, M3, M4, M5, M6, M7, M8, M9
+                    st.session_state.coilMeasResistance = {f"M{i}": 6400.0 for i in range(1, 10)}
+                    st.session_state.coilMeasResistance["R5"] = coilRefResistance
+
+                st.session_state.current_applied = (250, 1000, 2500, 4000, 4900)
+                st.session_state.coils_used = ("R5", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9")
+                st.session_state.impedance_img = "images/Impedance_dipole.png"
+
+            elif "Quadrupole" in basic_info['MAGNET_MEASURED']:
+                st.session_state.magnettype = "Quadrupole"
+
+                if "Q4" in basic_info['FLUXMETER_REFERENCE']:
+                    st.session_state.kRefCoil = -0.003890  # R5
+                    coilRefResistance = 39519.0  # ohm
+                elif "Other" in basic_info['FLUXMETER_REFERENCE']:
+                    st.session_state.kRefCoil = 0.0  # R5
+                    coilRefResistance = 39000.0  # ohm
+
+                if "Q2" in basic_info['FLUXMETER_MEASURED']:
+                    kMeasCoil = [0.0, 0.006720, 0.019860, 0.002840, -0.000290, 0.014550, 0.019280, 0.026890, 0.0]  # 0.0, M2, M3, M4, M5, M6, M7, M8, 0.0
+                    coilMeasResistance = {
+                        "R5": coilRefResistance,
+                        "M1": 0,
+                        "M2": 39651,
+                        "M3": 39655,
+                        "M4": 39658,
+                        "M5": 39547,
+                        "M6": 39556,
+                        "M7": 39623,
+                        "M8": 39734,
+                        "M9": 0
+                    }
+                elif "Other" in basic_info['FLUXMETER_MEASURED']:
+                    kMeasCoil = [0.0] * 9  # M1, M2, M3, M4, M5, M6, M7, M8, M9
+                    st.session_state.coilMeasResistance = {f"M{i}": 3900.0 for i in range(1, 10)}
+                    st.session_state.coilMeasResistance["R5"] = coilRefResistance
+
+                st.session_state.current_applied = (100, 400, 1000, 1540, 1938)
+                st.session_state.coils_used = ("R5", "M2", "M3", "M4", "M5", "M6", "M7", "M8")
+                st.session_state.impedance_img = "images/Impedance_quadrople.png"
+            
+            else:
+                st.write("Error! Something went wrong with the magnet selection.")
+                exit()
+
+            # Creating the dictionary
+            st.session_state.kMeasCoil = {key: value for key, value in zip(['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'], kMeasCoil)}
+        
+            # Display the data in a Streamlit table
+            st.title("Magnetic Measurements Data")
+            make_df(mydf,False)
+
+            # Create two columns for arranging items side by side
+            left_column, right_column = st.columns(2)
+            
+            # Average Flux of the coils for different current applied
+            avg_data = mydf.pivot_table(index='Current', values= coils_used, aggfunc='mean')
+            average_data = avg_data.style.format("{:.6f}")
+
+            # Stddev Flux of the coils for different current applied
+            grouped_data = mydf.groupby('Current')[coils_used].std()
+            pivoted_data = grouped_data.reset_index().pivot_table(index='Current')
+            stddev_data = pivoted_data.style.format("{:.6f}")
+
+            with left_column:
+                # for a specific workorder,date, etc 
+                st.title("Average Flux")
+                # Display the pivoted data
+                st.dataframe(average_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))      
+
+
+            with right_column:
+                st.title("Stddev Flux")
+                # Display the pivoted data
+                st.dataframe(stddev_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))
+        else:
+            st.subheader("The selected Date has no measurements")
+    else:
+        st.write("Please provide the Workorder number and/or Date first")
+
 
 
