@@ -96,6 +96,7 @@ if st.session_state.flag:
         st.plotly_chart(fig)
 
 else:
-    st.write("Please select the date or the workorder.")
+    empty_line(3)
+    st.subheader("Please choose first the date or the workorder of the measurement.")
             
             

@@ -51,36 +51,40 @@ st.set_page_config(page_title="Magnetic Measurements SPS Database 🧲📏", pag
 add_bg_from_url(title)
 ######################################## THE LAYOUT OF THE PAGE ###########################################
 
-# coils used 
+# coils used and dataframe init
 coils_used = ['R5', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9']
+mydf = pd.DataFrame()
 
 # Define a radio button to select input method
 input_method = st.radio("Select Input Method", ["Choose a specific Workorder and Date", "See all data"], horizontal= True)
 
+#if database is not empty
 if not df.empty:
         
     if input_method == "Choose a specific Workorder and Date":
 
+        st.session_state.flag = False
+
         df = df.rename(columns={'CURRENT_APPLIED':'Current'})
         row1 = row([0.5, 0.5], vertical_align="center")
         workorder_input = row1.text_input('Provide the Workorder number','')
-        date_input = row1.date_input('Date of the measurement', value="today", format ="DD/MM/YYYY")
-        date_input = date_input.strftime('%d/%m/%Y')
-
-        if workorder_input:
-            mydf = df[df["WORKORDER_N"].astype(str) == str(workorder_input)]
-            mycase = 1
-        elif date_input:
-            mydf = mydf[mydf["MEASUREMENT_DATE"].astype(str).str.contains(date_input)]
-            mycase = 2
-        elif workorder_input and date_input:
-            mydf = mydf[mydf["MEASUREMENT_DATE"].astype(str).str.contains(date_input)]
-            mydf = mydf[mydf["WORKORDER_N"].astype(str).str.contains(workorder_input)]
-        else:
-            st.write("Please provide a valid Workorder and/or Date first")
+        date_input = row1.date_input('Date of the measurement', value=None, format ="DD/MM/YYYY")
+        if date_input != None: date_input = date_input.strftime('%d/%m/%Y') 
+        
 
         if st.button("Show measurement data", key="Button"):
             
+            if workorder_input and not date_input:
+                mydf = df[df["WORKORDER_N"].notnull() & (df["WORKORDER_N"].astype(str) == str(workorder_input))]
+            elif date_input and not workorder_input:
+                mydf = df[df["MEASUREMENT_DATE"].astype(str).str.contains(date_input)]
+            elif workorder_input and date_input:
+                mydf = df[df["MEASUREMENT_DATE"].astype(str).str.contains(date_input)]
+                mydf = mydf[mydf["WORKORDER_N"].astype(str) == workorder_input]
+            else:
+                st.subheader("Please provide a valid Workorder and/or the Date first")
+
+
             if not mydf.empty:
                 st.session_state.flag = True
 
@@ -237,10 +241,14 @@ if not df.empty:
                     # Display the pivoted data
                     st.dataframe(stddev_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))
             else:
-                if mycase ==1:
+                
+                if workorder_input and not date_input:
                     st.subheader("The selected Workorder has no measurements")
-                elif mycase ==2:
+                elif date_input and not workorder_input:
                     st.subheader("The selected Date has no measurements")
+                elif workorder_input and date_input:
+                    st.subheader("The selected Date and Workorder have no measurements")
+    
         
     else:
         # Display the data in a Streamlit table

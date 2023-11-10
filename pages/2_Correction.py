@@ -129,7 +129,8 @@ if st.session_state.flag:
             st.image(impedance_img)
             st.image("images/Correction_image.png")
 else:
-    st.write("Please select the date or the workorder.")
+    empty_line(3)
+    st.subheader("Please choose first the date or the workorder of the measurement.")
 
 
 

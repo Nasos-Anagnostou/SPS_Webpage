@@ -31,6 +31,8 @@ def execute_query(connection):
         column_names = [desc[0] for desc in cursor.description]
         df = pd.DataFrame(rows, columns=column_names)
 
+        # convert workorder to int
+        df['WORKORDER_N'] = df['WORKORDER_N'].fillna(0).astype(int)
         # Convert the 'MEASUREMENT_DATE' column to datetime format
         df['MEASUREMENT_DATE'] = pd.to_datetime(df['MEASUREMENT_DATE'], format='%Y%m%d_%H%M%S', errors='coerce')
         # Convert the second date format
