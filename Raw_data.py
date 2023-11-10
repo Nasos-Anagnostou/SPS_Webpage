@@ -57,7 +57,7 @@ mydf = pd.DataFrame()
 
 # Define a radio button to select input method
 input_method = st.radio("Select Input Method", ["Choose a specific Workorder and Date", "See all data"], horizontal= True)
-
+empty_line(3)
 #if database is not empty
 if not df.empty:
         
@@ -66,13 +66,14 @@ if not df.empty:
         st.session_state.flag = False
 
         df = df.rename(columns={'CURRENT_APPLIED':'Current'})
-        row1 = row([0.5, 0.5], vertical_align="center")
-        workorder_input = row1.text_input('Provide the Workorder number','')
+
+        row1 = row([0.3, 0.4, 0.7],gap = "medium", vertical_align="bottom")
+
+        workorder_input = row1.text_input('Workorder number','')
         date_input = row1.date_input('Date of the measurement', value=None, format ="DD/MM/YYYY")
         if date_input != None: date_input = date_input.strftime('%d/%m/%Y') 
-        
 
-        if st.button("Show measurement data", key="Button"):
+        if row1.button("Show measurement data", key="Button"):
             
             if workorder_input and not date_input:
                 mydf = df[df["WORKORDER_N"].notnull() & (df["WORKORDER_N"].astype(str) == str(workorder_input))]
@@ -80,9 +81,10 @@ if not df.empty:
                 mydf = df[df["MEASUREMENT_DATE"].astype(str).str.contains(date_input)]
             elif workorder_input and date_input:
                 mydf = df[df["MEASUREMENT_DATE"].astype(str).str.contains(date_input)]
-                mydf = mydf[mydf["WORKORDER_N"].astype(str) == workorder_input]
+                mydf = mydf[mydf["WORKORDER_N"].notnull() & (df["WORKORDER_N"].astype(str) == str(workorder_input))]
             else:
-                st.subheader("Please provide a valid Workorder and/or the Date first")
+                empty_line(3)
+                st.subheader("⚠️ Please provide a valid Workorder and/or a Date first ")
 
 
             if not mydf.empty:
@@ -241,7 +243,7 @@ if not df.empty:
                     # Display the pivoted data
                     st.dataframe(stddev_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))
             else:
-                
+
                 if workorder_input and not date_input:
                     st.subheader("The selected Workorder has no measurements")
                 elif date_input and not workorder_input:

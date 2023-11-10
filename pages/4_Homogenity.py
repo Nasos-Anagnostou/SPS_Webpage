@@ -136,4 +136,7 @@ if st.session_state.flag:
 
 else:
     empty_line(3)
-    st.subheader("Please choose first the date or the workorder of the measurement.")
+    row1 = row([0.7, 0.6], vertical_align="center")
+    row1.subheader("Please choose first the date or the workorder of the measurement.")
+    if row1.button("Back to Home Page 🏠"):
+        switch_page("Raw_data")
