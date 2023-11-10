@@ -2,7 +2,7 @@ import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 from streamlit_extras.row import row 
 from custom_funct import *
-from dbconnection import *
+from Raw_data import *
 import pandas as pd
 
 
@@ -33,6 +33,12 @@ if "kMeasCoil" not in st.session_state:
 
 if "avg_data" not in st.session_state:
     st.session_state['avg_data'] = None
+
+if "impedance_img" not in st.session_state:
+    st.session_state['impedance_img'] = ""
+
+if "flag" not in st.session_state:
+    st.session_state['flag'] = False
 
 ######################################## THE LAYOUT OF THE PAGE ###########################################
 #config of the page
@@ -86,7 +92,7 @@ def show_results(current_applied,coils_used):
 
 
 # Check if there is data in the DataFrame
-if not df.empty:   
+if st.session_state.flag:   
     # get the session state variables
     current_applied = st.session_state.current_applied
     coils_used = st.session_state.coils_used
@@ -123,7 +129,7 @@ if not df.empty:
             st.image(impedance_img)
             st.image("images/Correction_image.png")
 else:
-    st.write("No measurement information found in the DataFrame.")
+    st.write("Please select the date or the workorder.")
 
 
 

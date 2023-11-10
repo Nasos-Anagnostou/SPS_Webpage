@@ -39,6 +39,9 @@ if "kMeasCoil" not in st.session_state:
 if "avg_data" not in st.session_state:
     st.session_state['avg_data'] = None
 
+if "flag" not in st.session_state:
+    st.session_state['flag'] = False
+
 ######################################## THE LAYOUT OF THE PAGE ###########################################
 #config of the page
 st.set_page_config(page_title="Magnetic Measurements SPS Database 🧲📏", page_icon="🧲", layout="wide",
@@ -58,14 +61,14 @@ if not df.empty:
         
     if input_method == "Choose a specific Workorder and Date":
 
-        mydf = df.rename(columns={'CURRENT_APPLIED':'Current'})
+        df = df.rename(columns={'CURRENT_APPLIED':'Current'})
         row1 = row([0.5, 0.5], vertical_align="center")
         workorder_input = row1.text_input('Provide the Workorder number','')
         date_input = row1.date_input('Date of the measurement', value="today", format ="DD/MM/YYYY")
         date_input = date_input.strftime('%d/%m/%Y')
 
         if workorder_input:
-            mydf = mydf[mydf["WORKORDER_N"].astype(str) == str(workorder_input)]
+            mydf = df[df["WORKORDER_N"].astype(str) == str(workorder_input)]
             mycase = 1
         elif date_input:
             mydf = mydf[mydf["MEASUREMENT_DATE"].astype(str).str.contains(date_input)]
@@ -79,6 +82,7 @@ if not df.empty:
         if st.button("Show measurement data", key="Button"):
             
             if not mydf.empty:
+                st.session_state.flag = True
 
                 if "MBA" in str(mydf['MAGNET_MEASURED']):
                     st.session_state.magnettype = "Dipole"
@@ -233,12 +237,14 @@ if not df.empty:
                     # Display the pivoted data
                     st.dataframe(stddev_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))
             else:
-                case
-                st.subheader("The selected Date has no measurements")
+                if mycase ==1:
+                    st.subheader("The selected Workorder has no measurements")
+                elif mycase ==2:
+                    st.subheader("The selected Date has no measurements")
         
     else:
         # Display the data in a Streamlit table
-        st.title("Magnetic Measurements Data")
+        st.title("Magnetic measurement data contained in the database")
         make_df(df,True)
         
 else:

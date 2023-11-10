@@ -44,55 +44,58 @@ afcorrlist = st.session_state.afcorrlist
 
 tracking_list = []
 
-for current in current_applied:
+# Check if there is data in the DataFrame
+if st.session_state.flag:   
+    for current in current_applied:
 
-    # Extract 'After Correction' values where 'Coil' is 'R5' and 'M5'
-    r5_aftcorr = [entry["After Correction"] for entry in afcorrlist if (entry["Coil"] == "R5" and entry["Current"] == current)]
-    m5_aftercorr = [entry["After Correction"] for entry in afcorrlist if (entry["Coil"] == "M5" and entry["Current"] == current)]
-    r5_aftcorr = r5_aftcorr[0]
-    m5_aftercorr = m5_aftercorr[0]
+        # Extract 'After Correction' values where 'Coil' is 'R5' and 'M5'
+        r5_aftcorr = [entry["After Correction"] for entry in afcorrlist if (entry["Coil"] == "R5" and entry["Current"] == current)]
+        m5_aftercorr = [entry["After Correction"] for entry in afcorrlist if (entry["Coil"] == "M5" and entry["Current"] == current)]
+        r5_aftcorr = r5_aftcorr[0]
+        m5_aftercorr = m5_aftercorr[0]
 
-    dVcorr = m5_aftercorr - r5_aftcorr
-    dv_vref = 1000 * ( dVcorr / r5_aftcorr)
-    dvcorr_vref = dv_vref - (1000* kMeasCoil["M5"] - kRefCoil)
+        dVcorr = m5_aftercorr - r5_aftcorr
+        dv_vref = 1000 * ( dVcorr / r5_aftcorr)
+        dvcorr_vref = dv_vref - (1000* kMeasCoil["M5"] - kRefCoil)
 
-    # Creating a DataFrame
-    data = {
-        'Current': current,
-        'R5': r5_aftcorr,
-        'M5': m5_aftercorr,
-        'M5-R5': dVcorr,
-        '(Vmeas-Vref)/Vref   (E-3)': dv_vref,
-        'dV/Vref corrected   (E-3)': dvcorr_vref
-    }
-    tracking_list.append(data)
+        # Creating a DataFrame
+        data = {
+            'Current': current,
+            'R5': r5_aftcorr,
+            'M5': m5_aftercorr,
+            'M5-R5': dVcorr,
+            '(Vmeas-Vref)/Vref   (E-3)': dv_vref,
+            'dV/Vref corrected   (E-3)': dvcorr_vref
+        }
+        tracking_list.append(data)
 
-st.header("Tracking Results")
-df_tracking = pd.DataFrame(tracking_list)
-st.dataframe(df_tracking, hide_index=1, use_container_width=True)
+    st.header("Tracking Results")
+    df_tracking = pd.DataFrame(tracking_list)
+    st.dataframe(df_tracking, hide_index=1, use_container_width=True)
 
-st.header("Line Charts for Magnetization Curve and Tracking")
-# Create two columns for arranging items side by side
-left_column, right_column = st.columns(2)
+    st.header("Line Charts for Magnetization Curve and Tracking")
+    # Create two columns for arranging items side by side
+    left_column, right_column = st.columns(2)
 
-with left_column:
-    # Create a line chart using Plotly Express
-    fig = px.line(df_tracking, x='Current', y='M5', title='Magnetization curve', markers= True, 
-                labels={'Current': 'Current in A', 'M5': 'Flux (V.s)'})
-    fig.update_layout(title_x = 0.4)
-    fig.update_traces(marker=dict(color='white', size=8))
+    with left_column:
+        # Create a line chart using Plotly Express
+        fig = px.line(df_tracking, x='Current', y='M5', title='Magnetization curve', markers= True, 
+                    labels={'Current': 'Current in A', 'M5': 'Flux (V.s)'})
+        fig.update_layout(title_x = 0.4)
+        fig.update_traces(marker=dict(color='white', size=8))
 
-    st.plotly_chart(fig)
+        st.plotly_chart(fig)
 
-with right_column:
-    # Create a line chart using Plotly Express
-    fig = px.line(df_tracking, x='Current', y='dV/Vref corrected   (E-3)', title='Tracking', markers= True, 
-                labels={'Current': 'Current in A', 'M5': 'dG/G (E-3)'})
-    fig.update_layout(title_x = 0.4)
-    fig.update_traces(marker=dict(color='white', size=8))
+    with right_column:
+        # Create a line chart using Plotly Express
+        fig = px.line(df_tracking, x='Current', y='dV/Vref corrected   (E-3)', title='Tracking', markers= True, 
+                    labels={'Current': 'Current in A', 'M5': 'dG/G (E-3)'})
+        fig.update_layout(title_x = 0.4)
+        fig.update_traces(marker=dict(color='white', size=8))
 
-    st.plotly_chart(fig)
+        st.plotly_chart(fig)
 
-
+else:
+    st.write("Please select the date or the workorder.")
             
             

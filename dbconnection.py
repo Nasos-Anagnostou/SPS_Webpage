@@ -30,6 +30,19 @@ def execute_query(connection):
         rows = cursor.fetchall()
         column_names = [desc[0] for desc in cursor.description]
         df = pd.DataFrame(rows, columns=column_names)
+
+        # Convert the 'MEASUREMENT_DATE' column to datetime format
+        df['MEASUREMENT_DATE'] = pd.to_datetime(df['MEASUREMENT_DATE'], format='%Y%m%d_%H%M%S', errors='coerce')
+        # Convert the second date format
+        df['MEASUREMENT_DATE'] = df['MEASUREMENT_DATE'].combine_first(pd.to_datetime(df['MEASUREMENT_DATE'], format='%Y-%m-%d', errors='coerce'))
+        # Format the 'MEASUREMENT_DATE' column as required
+        df['MEASUREMENT_DATE'] = df['MEASUREMENT_DATE'].dt.strftime("%H:%M   %d/%m/%Y")
+
+        df['MAGNET_MEASURED'] = df['MAGNET_MEASURED'].apply(modify_string)
+        df['MAGNET_REFERENCE'] = df['MAGNET_REFERENCE'].apply(modify_string)
+        df['FLUXMETER_MEASURED'] = df['FLUXMETER_MEASURED'].apply(modify_string,)
+        df['FLUXMETER_REFERENCE'] = df['FLUXMETER_REFERENCE'].apply(modify_string)
+
         return df
     finally:
         cursor.close()
@@ -43,18 +56,6 @@ except:
 # Initialize the database connection
 db_connection = connect_to_oracle()
 df = execute_query(db_connection)
-
-# Convert the 'MEASUREMENT_DATE' column to datetime format
-df['MEASUREMENT_DATE'] = pd.to_datetime(df['MEASUREMENT_DATE'], format='%Y%m%d_%H%M%S', errors='coerce')
-# Convert the second date format
-df['MEASUREMENT_DATE'] = df['MEASUREMENT_DATE'].combine_first(pd.to_datetime(df['MEASUREMENT_DATE'], format='%Y-%m-%d', errors='coerce'))
-# Format the 'MEASUREMENT_DATE' column as required
-df['MEASUREMENT_DATE'] = df['MEASUREMENT_DATE'].dt.strftime("%H:%M   %d/%m/%Y")
-
-df['MAGNET_MEASURED'] = df['MAGNET_MEASURED'].apply(modify_string)
-df['MAGNET_REFERENCE'] = df['MAGNET_REFERENCE'].apply(modify_string)
-df['FLUXMETER_MEASURED'] = df['FLUXMETER_MEASURED'].apply(modify_string,)
-df['FLUXMETER_REFERENCE'] = df['FLUXMETER_REFERENCE'].apply(modify_string)
 
 # Close the connection
 db_connection.close()        
