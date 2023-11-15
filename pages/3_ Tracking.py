@@ -21,11 +21,6 @@ if "kRefCoil" not in st.session_state:
 if "kMeasCoil" not in st.session_state:
     st.session_state['kMeasCoil'] = None
 
-####################################################### INITIALIZATION ###############################################################
-# init the styles of fonts
-homepage = '<p style="font-family:Arial Black; color:black; font-size: 200%;"><strong>Homepage 🏠</strong></p>'
-comp = '<p style="font-family:Arial Black; color:#262730; font-size: 150%;"><strong>Chose competition🏆</strong></p>'
-title = '<p style="font-family:Arial Black; color:white; font-size: 300%; text-align: center;">Magnetic Measurements SPS Database 🧲📏</p>'
 
 ######################################## THE LAYOUT OF THE PAGE ###########################################
 #config of the page
@@ -97,7 +92,7 @@ if st.session_state.flag:
 
 else:
     empty_line(3)
-    row1 = row([0.7, 0.6], vertical_align="center")
+    row1 = row([0.7, 0.6], vertical_align="bottom")
     row1.subheader("Please choose first the date or the workorder of the measurement.")
     if row1.button("Back to Home Page 🏠"):
         switch_page("Raw_data")     

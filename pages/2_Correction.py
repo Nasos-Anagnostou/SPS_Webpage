@@ -130,7 +130,7 @@ if st.session_state.flag:
             st.image("images/Correction_image.png")
 else:
     empty_line(3)
-    row1 = row([0.7, 0.6], vertical_align="center")
+    row1 = row([0.7, 0.6], vertical_align="bottom")
     row1.subheader("Please choose first the date or the workorder of the measurement.")
     if row1.button("Back to Home Page 🏠"):
         switch_page("Raw_data")

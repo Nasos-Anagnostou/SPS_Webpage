@@ -1,6 +1,7 @@
 from PIL import Image
 import requests
 import streamlit as st
+from streamlit_extras.stateful_button import button
 import base64
 from io import BytesIO
 import validators  # You need to import the validators library
@@ -16,15 +17,15 @@ title = '<p style="font-family:Arial Black; color:white; font-size: 300%; text-a
 
 # Function to modify the string
 def modify_string(replacements):
-    
     return replacements.split(':')[-1].strip()
 
 # insert empty spaces
 def empty_line(lines_number):
-    for num in range(lines_number):
+    for i in range(lines_number):
         st.write("\n")
 
-def add_logo(logo_url: str, height: int = 120):
+
+def add_logo(logo_url: str, height: int = 180):
     """Add a logo (from logo_url) on the top of the navigation page of a multipage app.
     Taken from https://discuss.streamlit.io/t/put-logo-and-title-above-on-top-of-page-navigation-in-sidebar-of-multipage-app/28213/6
 
@@ -33,7 +34,7 @@ def add_logo(logo_url: str, height: int = 120):
     Args:
         logo_url (str): URL/local path of the logo
     """
-    
+
     try:
         if validators.url(logo_url):
             # If it's a URL, fetch the image
@@ -48,7 +49,7 @@ def add_logo(logo_url: str, height: int = 120):
         if image.mode == "RGBA":
             image = image.convert("RGB")
         
-        new_size = (300, 150)  # Replace with your desired dimensions
+        new_size = (200, 200)  # Replace with your desired dimensions
         resized_image = image.resize(new_size)
         
         # Convert the resized image to base64
@@ -57,15 +58,15 @@ def add_logo(logo_url: str, height: int = 120):
         base64_image = base64.b64encode(buffered.getvalue()).decode()
 
         logo = f"url(data:image/jpeg;base64,{base64_image})"
-        
+
         st.markdown(
             f"""
             <style>
                 [data-testid="stSidebarNav"] {{
                     background-image: {logo};
                     background-repeat: no-repeat;
-                    padding-top: {height - 40}px;
-                    background-position: -40px 20px;
+                    padding-top: {height - 20}px;
+                    background-position: +50px 25px;
                 }}
             </style>
             """,
@@ -88,12 +89,37 @@ def add_bg_from_url(title):
        """,
         unsafe_allow_html=True
     )
-    add_logo("images//CERN-Logo.png")
+    add_logo("images//LogoBadge_Logo Badge.png")
     st.sidebar.markdown("# Magnetic Measurements  🧲 SPS Database 🖥️")
     # set the homepage style
     st.markdown(title, unsafe_allow_html=True)
     empty_line(2)
 
+
+def avg_stddev_tables(dataframe,coils_used):
+    # Create two columns for arranging items side by side
+    left_column, right_column = st.columns(2)
+    
+    # Average Flux of the coils for different current applied
+    st.session_state.avg_data = dataframe.pivot_table(index='Current', values= coils_used, aggfunc='mean')
+    average_data = st.session_state.avg_data.style.format("{:.6f}")
+
+    # Stddev Flux of the coils for different current applied
+    grouped_data = dataframe.groupby('Current')[coils_used].std()
+    pivoted_data = grouped_data.reset_index().pivot_table(index='Current')
+    stddev_data = pivoted_data.style.format("{:.6f}")
+
+    with left_column:
+        # for a specific workorder,date, etc 
+        st.title("Average Flux")
+        # Display the pivoted data
+        st.dataframe(average_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))      
+
+
+    with right_column:
+        st.title("Stddev Flux")
+        # Display the pivoted data
+        st.dataframe(stddev_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))
 
 
 def make_df(data, alldata):
@@ -103,14 +129,14 @@ def make_df(data, alldata):
         gb.configure_grid_options(pagination = True,alwaysShowHorizontalScroll = True)
 
     gb.configure_side_bar()  # Add a sidebar
-    gb.configure_selection('multiple', use_checkbox=False, groupSelectsChildren="Group checkbox select children")  # Enable multi-row selection
+    gb.configure_selection('multiple', use_checkbox=False, groupSelectsFiltered = True, groupSelectsChildren="Group checkbox select children")  # Enable multi-row selection
     gb.configure_auto_height(False)
     gridOptions = gb.build()
 
     grid_response = AgGrid(
         data,
         gridOptions=gridOptions,
-        data_return_mode='AS_INPUT',
+        data_return_mode='FILTERED',
         update_mode='MODEL_CHANGED',
         fit_columns_on_grid_load= not alldata,
         theme='alpine',  # Add theme color to the table
@@ -118,9 +144,11 @@ def make_df(data, alldata):
         height=850,
         width="Any",
     )
-    data = grid_response['data']
-    selected = grid_response['selected_rows']
-    df = pd.DataFrame(selected)  # Pass the selected rows to a new dataframe df
+    return_data = grid_response['data']   
+
+    df = pd.DataFrame(return_data)  # Pass the selected rows to a new dataframe df
     df = df.iloc[:, 1:]
 
     return df
+
+
