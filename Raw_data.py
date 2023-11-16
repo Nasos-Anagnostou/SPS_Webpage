@@ -89,7 +89,7 @@ if not df.empty:
                 
                 # Access the basic information for the first row (iloc[0])            
                 basic_info = mydf.iloc[0]
-                mydf = mydf.iloc[:, 7:]
+                newdf = mydf.iloc[:, 7:]
                 st.subheader("Basic Measurement Info")
                 # Create a table to display the information
                 basic_info_table = pd.DataFrame(
@@ -105,7 +105,7 @@ if not df.empty:
                 st.dataframe(basic_info_table, use_container_width= True, hide_index= True)
                 # Display the data in a Streamlit table
                 st.title("Magnetic Measurements Data")
-                make_df(mydf,False)
+                make_df(newdf,False)
                 
                 avgdf = mydf.rename(columns={'CURRENT_APPLIED':'Current'})
                 # Show the average and sttdev tables
