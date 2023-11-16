@@ -31,9 +31,6 @@ if "kMeasCoil" not in st.session_state:
 
 
 ######################################## THE LAYOUT OF THE PAGE ###########################################
-#config of the page
-st.set_page_config(page_title="Magnetic Measurements SPS Database 🧲📏", page_icon="🧲", layout="wide",
-                   initial_sidebar_state="expanded", menu_items=None)
 
 # add background
 add_bg_from_url(title)

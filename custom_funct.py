@@ -66,7 +66,7 @@ def add_logo(logo_url: str, height: int = 180):
                     background-image: {logo};
                     background-repeat: no-repeat;
                     padding-top: {height - 20}px;
-                    background-position: +50px 25px;
+                    background-position: +20px 25px;
                 }}
             </style>
             """,
@@ -147,7 +147,7 @@ def make_df(data, alldata):
     return_data = grid_response['data']   
 
     df = pd.DataFrame(return_data)  # Pass the selected rows to a new dataframe df
-    df = df.iloc[:, 1:]
+    #df = df.iloc[:, 1:]
 
     return df
 
