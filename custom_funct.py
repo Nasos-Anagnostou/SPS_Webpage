@@ -2,6 +2,7 @@ from PIL import Image
 import requests
 import streamlit as st
 from streamlit_extras.stateful_button import button
+from streamlit_extras.row import row 
 import base64
 from io import BytesIO
 import validators  # You need to import the validators library
@@ -101,8 +102,8 @@ def avg_stddev_tables(dataframe,coils_used):
     left_column, right_column = st.columns(2)
     
     # Average Flux of the coils for different current applied
-    st.session_state.avg_data = dataframe.pivot_table(index='Current', values= coils_used, aggfunc='mean')
-    average_data = st.session_state.avg_data.style.format("{:.6f}")
+    avg_data = dataframe.pivot_table(index='Current', values= coils_used, aggfunc='mean')
+    avg_data_styler = avg_data.style.format("{:.6f}")
 
     # Stddev Flux of the coils for different current applied
     grouped_data = dataframe.groupby('Current')[coils_used].std()
@@ -113,14 +114,14 @@ def avg_stddev_tables(dataframe,coils_used):
         # for a specific workorder,date, etc 
         st.title("Average Flux")
         # Display the pivoted data
-        st.dataframe(average_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))      
-
+        st.dataframe(avg_data_styler, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))      
 
     with right_column:
         st.title("Stddev Flux")
         # Display the pivoted data
         st.dataframe(stddev_data, column_order= ('R5','M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'))
 
+    return avg_data
 
 def make_df(data, alldata):
 
@@ -152,3 +153,42 @@ def make_df(data, alldata):
     return df
 
 
+def show_results(current_applied, avg_data, coilMeasResistance, coils_used):
+
+    fdiInputImpedance   = 400010
+    # Initialize an empty dictionary to store DataFrames
+    afcorrlist = []
+
+    for current in current_applied:
+        current_avg = avg_data.loc[avg_data.index == current]
+                
+        for coil in coils_used:
+            bfr_corr = current_avg.loc[current,coil]
+            aftr_corr = ((fdiInputImpedance + coilMeasResistance[coil])/ fdiInputImpedance) * bfr_corr
+            
+            # Create a dictionary for the current row of data
+            row_data = {
+                'Current':current,
+                'Coil': coil,
+                'Before Correction': bfr_corr,
+                'After Correction': aftr_corr
+            }
+            # Append the row_data dictionary to the data_list
+            afcorrlist.append(row_data)
+
+    # Create a DataFrame from the data_list
+    result_df = pd.DataFrame(afcorrlist)
+
+    # Create a dropdown menu for selecting the "current" value
+    row1 = row([0.3, 0.7], vertical_align="center")
+    selected_current = row1.selectbox("Select a Current", current_applied)
+    row1.write("")
+    
+    # Filter the DataFrame based on the selected "current"
+    filtered_df = result_df[result_df['Current'] == selected_current].iloc[:, 1:]
+
+    # Display the selected table
+    st.header(f" Current {selected_current}:")
+    st.dataframe(filtered_df, hide_index=1, width=600)
+
+    return afcorrlist  

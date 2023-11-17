@@ -109,7 +109,7 @@ if not df.empty:
                 
                 avgdf = mydf.rename(columns={'CURRENT_APPLIED':'Current'})
                 # Show the average and sttdev tables
-                avg_stddev_tables(avgdf,coils_used)
+                st.session_state.avg_data = avg_stddev_tables(avgdf,coils_used)
                 
             else:
                 if workorder_input and not date_input:
@@ -141,7 +141,7 @@ if not df.empty:
 
                 avgdf = mydf.rename(columns={'CURRENT_APPLIED':'Current'})
                 # Show the average and sttdev tables
-                avg_stddev_tables(avgdf,coils_used)
+                st.session_state.avg_data = avg_stddev_tables(avgdf,coils_used)
             
             elif  (df_modified.equals(df)):
                 st.subheader("Please apply some filters first!")
