@@ -12,8 +12,8 @@ if "afcorrlist" not in st.session_state:
 if "magnettype" not in st.session_state:
     st.session_state['magnettype'] = ""
 
-if "dtframe" not in st.session_state:
-    st.session_state['dtframe'] = None
+if "mydf" not in st.session_state:
+    st.session_state['mydf'] = None
 
 if "coilMeasResistance" not in st.session_state:
     st.session_state['coilMeasResistance'] = {}

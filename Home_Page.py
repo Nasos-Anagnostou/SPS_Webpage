@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_extras.row import row
 from streamlit_extras.stateful_button import button
+from streamlit_extras.switch_page_button import switch_page
 
 from custom_funct import *
 from dbconnection import df
@@ -22,8 +23,8 @@ if "impedance_img" not in st.session_state:
 if "afcorrlist" not in st.session_state:
     st.session_state['afcorrlist'] = []
 
-if "dtframe" not in st.session_state:
-    st.session_state['dtframe'] = None
+if "mydf" not in st.session_state:
+    st.session_state['mydf'] = None
 
 if "current_applied" not in st.session_state:
     st.session_state['current_applied'] = []
@@ -84,32 +85,12 @@ if not df.empty:
             else:
                 empty_line(3)
                 st.subheader("⚠️ Please provide a valid Workorder and/or a Date first ")
+            
 
             if not mydf.empty:
-                
-                # Access the basic information for the first row (iloc[0])            
-                basic_info = mydf.iloc[0]
-                newdf = mydf.iloc[:, 7:]
-                st.subheader("Basic Measurement Info")
-                # Create a table to display the information
-                basic_info_table = pd.DataFrame(
-                    {
-                        'Workorder number': str(basic_info['WORKORDER_N']),
-                        'Date Measured': [basic_info['MEASUREMENT_DATE']],
-                        'Magnet Measured': [basic_info['MAGNET_MEASURED']],
-                        'Magnet Reference': [basic_info['MAGNET_REFERENCE']],
-                        'Fluxmeter Measured': [basic_info['FLUXMETER_MEASURED']],
-                        'Fluxmeter Reference': [basic_info['FLUXMETER_REFERENCE']]
-                    }
-                )
-                st.dataframe(basic_info_table, use_container_width= True, hide_index= True)
-                # Display the data in a Streamlit table
-                st.title("Magnetic Measurements Data")
-                make_df(newdf,False)
-                
-                avgdf = mydf.rename(columns={'CURRENT_APPLIED':'Current'})
-                # Show the average and sttdev tables
-                st.session_state.avg_data = avg_stddev_tables(avgdf,coils_used)
+                st.session_state.flag = True
+                st.session_state.mydf = mydf
+                switch_page("Raw_data")
                 
             else:
                 if workorder_input and not date_input:
@@ -134,14 +115,12 @@ if not df.empty:
         if st.button("Analyse Measurement",key= "Button"):
 
             if not df_modified.equals(df):
+                
                 # Save the modified DataFrame to a file (modify this part based on your saving preference)
-                mydf = pd.DataFrame(df_modified)
-                newdf = mydf.iloc[:, 7:]
-                make_df(newdf, False)
+                st.session_state.mydf = pd.DataFrame(df_modified)
+                st.session_state.flag = True
+                switch_page("Raw_data")
 
-                avgdf = mydf.rename(columns={'CURRENT_APPLIED':'Current'})
-                # Show the average and sttdev tables
-                st.session_state.avg_data = avg_stddev_tables(avgdf,coils_used)
             
             elif  (df_modified.equals(df)):
                 st.subheader("Please apply some filters first!")
