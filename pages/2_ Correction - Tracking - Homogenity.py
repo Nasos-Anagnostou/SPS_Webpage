@@ -5,6 +5,7 @@ from custom_funct import *
 import pandas as pd
 import plotly.express as px
 
+
 # Initialization of the st.session variables
 if "afcorrlist" not in st.session_state:
     st.session_state['afcorrlist'] = []
@@ -54,16 +55,19 @@ if st.session_state.flag:
     font_css = """
     <style>
     button[data-baseweb="tab"] > div[data-testid="stMarkdownContainer"] > p {
-    font-size: 26px;
+    font-size: 28px;
     }
     </style>
     """
     st.write(font_css, unsafe_allow_html=True)
-    tab1, tab2, tab3 = st.tabs(["Correction", "Tracking", "Homogenity"])
 
+    whitespace = 24
+    ## Fills and centers each tab label with em-spaces
+    #correction, tracking, homogeneity = st.tabs([s.center(whitespace,"\u2001") for s in ["Correction", "Tracking", "Homogeneity"]])
+    correction, tracking, homogeneity = st.tabs(["Correction", "Tracking", "Homogeneity"])
 
     # Correction
-    with tab1:
+    with correction:
 
         empty_line(2)
         # get the session state variables
@@ -106,7 +110,7 @@ if st.session_state.flag:
         
 
     # Tracking
-    with tab2:
+    with tracking:
 
         empty_line(2)
         # get the session state variables
@@ -167,7 +171,7 @@ if st.session_state.flag:
 
     
     # Homogenity            
-    with tab3:
+    with homogeneity:
         
         empty_line(2)
         # get the session state variables
@@ -267,3 +271,6 @@ else:
     row1.subheader("Please choose first the date or the workorder of the measurement.")
     if row1.button("Back to Home Page 🏠"):
         switch_page("Raw_data")
+
+
+

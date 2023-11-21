@@ -48,7 +48,9 @@ add_bg_from_url(title)
 ######################################## THE LAYOUT OF THE PAGE ###########################################
 
 if st.session_state.flag:
+
     mydf = st.session_state.mydf
+    all_coils = ['R5', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9']
 
     # Access the basic information for the first row (iloc[0])            
     basic_info = mydf.iloc[0]
@@ -73,7 +75,7 @@ if st.session_state.flag:
     
     # Show the average and sttdev tables
     avgdf = mydf.rename(columns={'CURRENT_APPLIED':'Current'})
-    st.session_state.avg_data = avg_stddev_tables(avgdf,coils_used)
+    st.session_state.avg_data = avg_stddev_tables(avgdf,all_coils)
 
 else:
     empty_line(3)

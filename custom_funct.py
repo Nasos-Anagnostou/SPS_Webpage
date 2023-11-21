@@ -1,20 +1,195 @@
 from PIL import Image
 import requests
 import streamlit as st
-from streamlit_extras.stateful_button import button
 from streamlit_extras.row import row 
 import base64
 from io import BytesIO
 import validators  # You need to import the validators library
 from st_aggrid import GridOptionsBuilder, AgGrid
 import pandas as pd
+import cx_Oracle
+from datetime import datetime
 
 ####################################################### INITIALIZATION ###############################################################
 # init the styles of fonts
-homepage = '<p style="font-family:Arial Black; color:black; font-size: 200%;"><strong>Homepage 🏠</strong></p>'
-comp = '<p style="font-family:Arial Black; color:#262730; font-size: 150%;"><strong>Chose competition🏆</strong></p>'
 title = '<p style="font-family:Arial Black; color:white; font-size: 300%; text-align: center;">Magnetic Measurements SPS Database 🧲💾</p>'
 
+
+# Functions to connect to the databse and execute queries to get the data
+def connect_to_oracle():
+    oracle_username = '***REMOVED***'
+    oracle_password = '***REMOVED***'    
+    oracle_host = '***REMOVED***'
+    oracle_port = '***REMOVED***'
+    oracle_service_name = '***REMOVED***'
+
+    try:
+        connection = cx_Oracle.connect(
+            f"{oracle_username}/{oracle_password}@{oracle_host}:{oracle_port}/{oracle_service_name}")
+        return connection
+    except cx_Oracle.Error as error:
+        print(f"Error: {error}")
+        return None
+
+# Functions to connect to the databse and execute queries to get the data
+def execute_query(connection):
+    cursor = connection.cursor()
+
+    try:
+        # comment only for the dev of the app
+        cursor.execute("ALTER TABLE SPS_SEP_COIL_ACQ NOCACHE")
+        cursor.execute("SELECT * FROM SPS_SEP_COIL_ACQ")
+        rows = cursor.fetchall()
+        column_names = [desc[0] for desc in cursor.description]
+        df = pd.DataFrame(rows, columns=column_names)
+
+        # convert workorder to int
+        df['WORKORDER_N'] = df['WORKORDER_N'].fillna(0).astype(int)
+        # Convert the 'MEASUREMENT_DATE' column to datetime format
+        df['MEASUREMENT_DATE'] = pd.to_datetime(df['MEASUREMENT_DATE'], format='%Y%m%d_%H%M%S', errors='coerce')
+        # Convert the second date format
+        df['MEASUREMENT_DATE'] = df['MEASUREMENT_DATE'].combine_first(pd.to_datetime(df['MEASUREMENT_DATE'], format='%Y-%m-%d', errors='coerce'))
+        # Format the 'MEASUREMENT_DATE' column as required
+        df['MEASUREMENT_DATE'] = df['MEASUREMENT_DATE'].dt.strftime("%H:%M   %d/%m/%Y")
+
+        df['MAGNET_MEASURED'] = df['MAGNET_MEASURED'].apply(modify_string)
+        df['MAGNET_REFERENCE'] = df['MAGNET_REFERENCE'].apply(modify_string)
+        df['FLUXMETER_MEASURED'] = df['FLUXMETER_MEASURED'].apply(modify_string,)
+        df['FLUXMETER_REFERENCE'] = df['FLUXMETER_REFERENCE'].apply(modify_string)
+
+        return df
+    
+    finally:
+        cursor.close()
+
+# Functions to connect to the databse and execute queries to get the data
+def dbconnect(oracle_path):
+
+    # initialise the connection
+    try:
+        cx_Oracle.init_oracle_client(oracle_path)
+    except:
+        print("It is already initialised")
+
+    # Initialize the database connection
+    db_connection = connect_to_oracle()
+    df = execute_query(db_connection)
+
+    # Close the connection
+    db_connection.close()        
+
+    return df
+
+# Calibrate the parameters for each magnet type
+def magnet_calibration(mydf):
+
+    # initialise the values for every magnet type
+    if "MBA" in str(mydf['MAGNET_MEASURED']):
+        st.session_state.magnettype = "Dipole"
+        
+        if "B4" in str(mydf['FLUXMETER_REFERENCE']):
+            st.session_state.kRefCoil = 0.004460  # R5
+            coilRefResistance = 6384.0  # ohm
+        elif "Other" in str(mydf['FLUXMETER_REFERENCE']):
+            st.session_state.kRefCoil = 0.0  # R5
+            coilRefResistance = 6400.0 # ohm
+
+        if "A7" in str(mydf['FLUXMETER_MEASURED']):
+            kMeasCoil = [0.0, 0.002990, 0.0, 0.002670, 0.002680, 0.003990, 0.0, 0.003970, 0.0] # M1, M2, M3, M4, M5, M6, M7, M8, M9
+            st.session_state.coilMeasResistance = {
+                "R5": coilRefResistance,
+                "M1": 6358.0,
+                "M2": 6344.0,
+                "M3": 6348.0,
+                "M4": 6387.0,
+                "M5": 6342.0,
+                "M6": 6404.0,
+                "M7": 6347.0,
+                "M8": 6357.0,
+                "M9": 6355.0
+            }
+        elif "Other" in str(mydf['FLUXMETER_MEASURED']):
+            kMeasCoil = [0.0] * 9  # M1, M2, M3, M4, M5, M6, M7, M8, M9
+            st.session_state.coilMeasResistance = {f"M{i}": 6400.0 for i in range(1, 10)}
+            st.session_state.coilMeasResistance["R5"] = coilRefResistance
+
+        st.session_state.current_applied = (250, 1000, 2500, 4000, 4900)
+        st.session_state.coils_used = ("R5", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9")
+        st.session_state.impedance_img = "images/Impedance_dipole.png"
+    
+
+    elif "MBB" in str(mydf['MAGNET_MEASURED']):
+        st.session_state.magnettype = "Dipole"
+
+        if "B4" in str(mydf['FLUXMETER_REFERENCE']):
+            st.session_state.kRefCoil = 0.004460  # R5
+            coilRefResistance = 6384.0  # ohm
+        elif "Other" in str(mydf['FLUXMETER_REFERENCE']):
+            st.session_state.kRefCoil = 0.0  # R5
+            coilRefResistance = 6500.0 # ohm
+
+        if "B5" in str(mydf['FLUXMETER_MEASURED']):
+            kMeasCoil = [0.0, 0.004708, 0.0, 0.003518, 0.003898, 0.004478, 0.0, 0.004538, 0.0] # M1, M2, M3, M4, M5, M6, M7, M8, M9
+            coilMeasResistance = {
+                "R5": coilRefResistance,
+                "M1": 6409.0,
+                "M2": 6361.0,
+                "M3": 6397.0,
+                "M4": 6399.0,
+                "M5": 6366.0,
+                "M6": 6357.0,
+                "M7": 6364.0,
+                "M8": 6368.0,
+                "M9": 6363.0
+            }
+        elif "Other" in str(mydf['FLUXMETER_MEASURED']):
+            kMeasCoil = [0.0] * 9  # M1, M2, M3, M4, M5, M6, M7, M8, M9
+            st.session_state.coilMeasResistance = {f"M{i}": 6400.0 for i in range(1, 10)}
+            st.session_state.coilMeasResistance["R5"] = coilRefResistance
+
+        st.session_state.current_applied = (250, 1000, 2500, 4000, 4900)
+        st.session_state.coils_used = ("R5", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9")
+        st.session_state.impedance_img = "images/Impedance_dipole.png"
+
+    elif "Quadrupole" in str(mydf['MAGNET_MEASURED']):
+        st.session_state.magnettype = "Quadrupole"
+
+        if "Q4" in str(mydf['FLUXMETER_REFERENCE']):
+            st.session_state.kRefCoil = -0.003890  # R5
+            coilRefResistance = 39519.0  # ohm
+        elif "Other" in str(mydf['FLUXMETER_REFERENCE']):
+            st.session_state.kRefCoil = 0.0  # R5
+            coilRefResistance = 39000.0  # ohm
+
+        if "Q2" in str(mydf['FLUXMETER_MEASURED']):
+            kMeasCoil = [0.0, 0.006720, 0.019860, 0.002840, -0.000290, 0.014550, 0.019280, 0.026890, 0.0]  # 0.0, M2, M3, M4, M5, M6, M7, M8, 0.0
+            coilMeasResistance = {
+                "R5": coilRefResistance,
+                "M1": 0,
+                "M2": 39651,
+                "M3": 39655,
+                "M4": 39658,
+                "M5": 39547,
+                "M6": 39556,
+                "M7": 39623,
+                "M8": 39734,
+                "M9": 0
+            }
+        elif "Other" in str(mydf['FLUXMETER_MEASURED']):
+            kMeasCoil = [0.0] * 9  # M1, M2, M3, M4, M5, M6, M7, M8, M9
+            st.session_state.coilMeasResistance = {f"M{i}": 3900.0 for i in range(1, 10)}
+            st.session_state.coilMeasResistance["R5"] = coilRefResistance
+
+        st.session_state.current_applied = (100, 400, 1000, 1540, 1938)
+        st.session_state.coils_used = ("R5", "M2", "M3", "M4", "M5", "M6", "M7", "M8")
+        st.session_state.impedance_img = "images/Impedance_quadrople.png"
+    
+    else:
+        st.write("Error! Something went wrong with the magnet selection.")
+        exit()
+
+    # Creating the dictionary
+    st.session_state.kMeasCoil = {key: value for key, value in zip(['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'], kMeasCoil)}
 
 # Function to modify the string
 def modify_string(replacements):
@@ -25,7 +200,7 @@ def empty_line(lines_number):
     for i in range(lines_number):
         st.write("\n")
 
-
+# add the streamlit logo
 def add_logo(logo_url: str, height: int = 180):
     """Add a logo (from logo_url) on the top of the navigation page of a multipage app.
     Taken from https://discuss.streamlit.io/t/put-logo-and-title-above-on-top-of-page-navigation-in-sidebar-of-multipage-app/28213/6
@@ -96,7 +271,7 @@ def add_bg_from_url(title):
     st.markdown(title, unsafe_allow_html=True)
     empty_line(2)
 
-
+# Avg and stddev tables creation
 def avg_stddev_tables(dataframe,coils_used):
     # Create two columns for arranging items side by side
     left_column, right_column = st.columns(2)
@@ -123,6 +298,7 @@ def avg_stddev_tables(dataframe,coils_used):
 
     return avg_data
 
+# Create an interactive dataframe presentation
 def make_df(data, alldata):
 
     gb = GridOptionsBuilder.from_dataframe(data)
@@ -152,7 +328,7 @@ def make_df(data, alldata):
 
     return df
 
-
+# Show the Correction results in a structured way
 def show_results(current_applied, avg_data, coilMeasResistance, coils_used):
 
     fdiInputImpedance   = 400010
