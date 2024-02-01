@@ -17,11 +17,11 @@ title = '<p style="font-family:Arial Black; color:white; font-size: 300%; text-a
 
 # Functions to connect to the databse and execute queries to get the data
 def connect_to_oracle():
-    oracle_username = '***REMOVED***'
-    oracle_password = '***REMOVED***'    
-    oracle_host = '***REMOVED***'
-    oracle_port = '***REMOVED***'
-    oracle_service_name = '***REMOVED***'
+    oracle_username = st.secrets["db_username"]
+    oracle_password = st.secrets["db_password"]   
+    oracle_host = st.secrets["db_host"]
+    oracle_port = st.secrets["db_port"]
+    oracle_service_name = st.secrets["db_service_name"]
 
     try:
         connection = cx_Oracle.connect(
