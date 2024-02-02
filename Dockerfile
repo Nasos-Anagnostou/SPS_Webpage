@@ -14,17 +14,20 @@ RUN wget https://download.oracle.com/otn_software/linux/instantclient/218000/ins
 ENV PATH="$PATH:/opt/oracle/instantclient_21_8"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/oracle/instantclient_21_8"
 
-
+WORKDIR /app
+ENV HOME="/app"
 RUN mkdir /app/.streamlit
 RUN chgrp -R 0 /app/.streamlit && \
 
     chmod -R g=u /app/.streamlit 
 
 
-# Copy the current directory contents into the container at /app
-COPY pages Home_Page.py startup.sh ./
-
+# Install dependencies
 RUN pip install -r requirements.txt
+
+# Copy the current directory contents into the container at /app
+COPY pages custom_funct.py Home_Page.py startup.sh ./
+
 
 #Nasos
 #WORKDIR /app
@@ -32,7 +35,6 @@ RUN pip install -r requirements.txt
 # EXPOSE 8501
 # CMD ["streamlit", "run", "home_page.py"]
 
-WORKDIR /app
 
 EXPOSE 8501
 ENTRYPOINT ["sh", "startup.sh"]
