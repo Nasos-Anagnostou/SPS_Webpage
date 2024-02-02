@@ -15,6 +15,10 @@ ENV PATH="$PATH:/opt/oracle/instantclient_21_8"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/oracle/instantclient_21_8"
 
 WORKDIR /app
+COPY requirements.txt ./
+# Install dependencies
+RUN pip install -r requirements.txt
+
 ENV HOME="/app"
 RUN mkdir /app/.streamlit
 RUN chgrp -R 0 /app/.streamlit && \
@@ -22,8 +26,7 @@ RUN chgrp -R 0 /app/.streamlit && \
     chmod -R g=u /app/.streamlit 
 
 
-# Install dependencies
-RUN pip install -r requirements.txt
+
 
 # Copy the current directory contents into the container at /app
 COPY pages custom_funct.py Home_Page.py startup.sh ./
