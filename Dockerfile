@@ -20,6 +20,10 @@ RUN chgrp -R 0 /app/.streamlit && \
 
     chmod -R g=u /app/.streamlit 
 
+
+# Copy the current directory contents into the container at /app
+COPY pages Home_Page.py startup.sh ./
+
 RUN pip install -r requirements.txt
 
 #Nasos
@@ -29,7 +33,6 @@ RUN pip install -r requirements.txt
 # CMD ["streamlit", "run", "home_page.py"]
 
 WORKDIR /app
-COPY app.py startup.sh ./
 
 EXPOSE 8501
 ENTRYPOINT ["sh", "startup.sh"]
