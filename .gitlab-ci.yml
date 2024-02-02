@@ -32,7 +32,7 @@ update_imagestream_and_redeploy:
   variables: 
     SERVER: https://api.paas.okd.cern.ch 
     PROJECT: te-msc-tm   # name of your Openshift project 
-    APP_NAME: sps-webpage  # name of the ImageStream/DeploymentConfig objects created by oc new-app 
+    APP_NAME: sps-database-web-interface  # name of the ImageStream/DeploymentConfig objects created by oc new-app 
   script: 
   - oc login $SERVER --token=$DEPLOY_TOKEN 
   - oc project $PROJECT 
