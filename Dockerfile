@@ -29,7 +29,7 @@ RUN chgrp -R 0 /app/.streamlit && \
 
 
 # Copy the current directory contents into the container at /app
-COPY pages custom_funct.py Home_Page.py startup.sh ./
+COPY pages images custom_funct.py Home_Page.py startup.sh ./
 
 
 #Nasos
