@@ -161,7 +161,7 @@ def magnet_calibration(mydf):
             st.session_state.kRefCoil = 0.0  # R5
             coilRefResistance = 39000.0  # ohm
 
-        if "Q2" in str(mydf['FLUXMETER_MEASURED']):
+        if mydf['FLUXMETER_MEASURED'].str.contains("Q1|Q2|Q3|Q4").any():
             kMeasCoil = [0.0, 0.006720, 0.019860, 0.002840, -0.000290, 0.014550, 0.019280, 0.026890, 0.0]  # 0.0, M2, M3, M4, M5, M6, M7, M8, 0.0
             coilMeasResistance = {
                 "R5": coilRefResistance,
