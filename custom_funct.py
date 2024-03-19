@@ -130,7 +130,7 @@ def magnet_calibration(mydf):
 
         if "B5" in str(mydf['FLUXMETER_MEASURED']):
             kMeasCoil = [0.0, 0.004708, 0.0, 0.003518, 0.003898, 0.004478, 0.0, 0.004538, 0.0] # M1, M2, M3, M4, M5, M6, M7, M8, M9
-            coilMeasResistance = {
+            st.session_state.coilMeasResistance = {
                 "R5": coilRefResistance,
                 "M1": 6409.0,
                 "M2": 6361.0,
@@ -163,7 +163,7 @@ def magnet_calibration(mydf):
 
         if mydf['FLUXMETER_MEASURED'].str.contains("Q1|Q2|Q3|Q4").any():
             kMeasCoil = [0.0, 0.006720, 0.019860, 0.002840, -0.000290, 0.014550, 0.019280, 0.026890, 0.0]  # 0.0, M2, M3, M4, M5, M6, M7, M8, 0.0
-            coilMeasResistance = {
+            st.session_state.coilMeasResistance = {
                 "R5": coilRefResistance,
                 "M1": 0,
                 "M2": 39651,
@@ -188,7 +188,8 @@ def magnet_calibration(mydf):
         st.write("Error! Something went wrong with the magnet selection.")
         exit()
 
-    # Creating the dictionary
+    # Creating the dictionaries
+        
     st.session_state.kMeasCoil = {key: value for key, value in zip(['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9'], kMeasCoil)}
 
 # Function to modify the string
