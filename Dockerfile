@@ -26,19 +26,11 @@ RUN chgrp -R 0 /app/.streamlit && \
     chmod -R g=u /app/.streamlit 
 
 
-
-
 # Copy the current directory contents into the container at /app
+COPY  .streamlit/config.toml ./.streamlit
 COPY images ./images
 COPY pages ./pages
 COPY custom_funct.py Home_Page.py startup.sh ./
-
-
-#Nasos
-#WORKDIR /app
-# COPY . /app
-# EXPOSE 8501
-# CMD ["streamlit", "run", "home_page.py"]
 
 
 EXPOSE 8501

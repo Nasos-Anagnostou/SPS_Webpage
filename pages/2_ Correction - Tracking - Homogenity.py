@@ -4,6 +4,7 @@ from streamlit_extras.row import row
 from custom_funct import *
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 
 # Initialization of the st.session variables
@@ -130,7 +131,7 @@ if st.session_state.flag:
 
             dVcorr = m5_aftercorr - r5_aftcorr
             dv_vref = 1000 * ( dVcorr / r5_aftcorr)
-            dvcorr_vref = dv_vref - (1000* kMeasCoil["M5"] - kRefCoil)
+            dvcorr_vref = dv_vref - (1000* (kMeasCoil["M5"] - kRefCoil))
 
             # Creating a DataFrame
             data = {
@@ -225,12 +226,14 @@ if st.session_state.flag:
 
         if magnettype == "Quadrupole":
             df_dvcorr.insert(0, 'Position', [40, 55, 35, 0, -35, -55, -40] )#M2...M8
+            # get rid of the irelevant data
+            df_filtered = df_dvcorr[~df_dvcorr.index.isin(["M8 - M5", "M2 - M5"])]
 
         elif magnettype == "Dipole":
             df_dvcorr.insert(0, 'Position', [11, 44, -11, 25, 0, -25, 11, -44, -11]) #M1...M9
-
-        # get rid of the irelevant data
-        df_filtered = df_dvcorr[~df_dvcorr.index.isin(["M8 - M5", "M2 - M5"])]
+            # get rid of the irelevant data
+            df_filtered = df_dvcorr[~df_dvcorr.index.isin(["M1 - M5", "M3 - M5", "M7 - M5", "M9 - M5"])]
+        
         # Get column names and store in a list
         column_names = df_filtered.columns[1:].tolist()  # Exclude the 'Position' column
 
@@ -244,25 +247,54 @@ if st.session_state.flag:
             
             
             
-            st.header("Vmeas-Vref /Vref (E-3) corrected")
+            st.header("Vmeas-Vref /Vref (E-4) corrected")
             st.dataframe(df_dvcorr,use_container_width= True)
 
         with right_column:
-            st.header("Vmeas-Vref /Vref (E-3)")
+            st.header("Vmeas-Vref /Vref (E-4)")
             st.dataframe(df_dv,use_container_width= True)
 
             st.header("Homogeneity shown only for x-axis coils")
-            # Create Plotly figure
-            fig = px.line(df_filtered, x='Position', title='Homogeneity', markers=True,
-                        labels={'Position': 'Position of the coil with respect to the central coil (mm)', 'value':'dG/Gref (E-3)'})
-            # Add lines for each column in column_names
+            # # Create Plotly figure
+            # fig = px.line(df_filtered, x='Position', title='Homogeneity', markers=True,
+            #             labels={'Position': 'Position of the coil with respect to the central coil (mm)', 'value':'dG/Gref (E-3)'})
+            # # Add lines for each column in column_names
+            # for col in column_names:
+            #     fig.add_scatter(x=df_filtered['Position'], y=df_filtered[col], name=col)
+
+            # fig.update_layout(title_x = 0.35, title_font =dict(size=30))
+            # fig.update_layout(yaxis=dict(title=dict(text="dG/Gref (E-3)", font=dict(size=25))))
+
+            # fig.update_yaxes(showticklabels=False)
+            # st.plotly_chart(fig)
+
+            # Create an empty figure
+            fig = go.Figure()
+
+            # Add lines for each column in column_names, each column is a current value
+
             for col in column_names:
-                fig.add_scatter(x=df_filtered['Position'], y=df_filtered[col], name=col)
+                fig.add_trace(go.Scatter(
+                    x=df_filtered['Position'], 
+                    y=df_filtered[col], 
+                    mode='lines+markers', 
+                    name=col
+                ))
 
-            fig.update_layout(title_x = 0.35, title_font =dict(size=30))
-            fig.update_layout(yaxis=dict(title=dict(text="dG/Gref (E-3)", font=dict(size=25))))
+            # Update layout
+            fig.update_layout(
+                title='Homogeneity',
+                title_x=0.35,
+                title_font=dict(size=30),
+                xaxis_title='Position of the coil with respect to the central coil (mm)',
+                yaxis_title='dG/Gref (E-4)',
+                yaxis=dict(title_font=dict(size=25)),
+            )
 
-            fig.update_yaxes(showticklabels=False)
+            # Optionally hide y-axis tick labels
+            fig.update_yaxes(showticklabels=True)
+
+            # Render the plot in Streamlit
             st.plotly_chart(fig)
 
 else:
